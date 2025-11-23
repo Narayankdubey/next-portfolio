@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IVisitorStats extends Document {
   userId: string;
+  name?: string;
   visitCount: number;
   lastVisit: Date;
   firstVisit: Date;
@@ -23,6 +24,10 @@ const VisitorStatsSchema: Schema = new Schema({
     required: true,
     unique: true,
     index: true,
+  },
+  name: {
+    type: String,
+    required: false,
   },
   visitCount: {
     type: Number,

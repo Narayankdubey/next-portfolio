@@ -278,20 +278,38 @@ export default function Navbar() {
                 {item.name}
               </a>
             ))}
-            <button
-              onClick={() => {
-                handleDownload();
-                setIsOpen(false);
-              }}
-              disabled={isGenerating}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full text-sm font-medium w-full justify-center disabled:opacity-50"
-            >
-              <Download className="w-4 h-4" />
-              {isGenerating ? "Generating..." : "Download Resume"}
-            </button>
+            
+            <div className="flex gap-3">
+              {toggleTheme && (
+                <button
+                  onClick={() => {
+                    toggleTheme();
+                    playClick();
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 p-2 rounded-full bg-gray-800 text-white hover:opacity-80 transition-opacity"
+                  title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+                >
+                  {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+                  <span className="text-sm">{theme === "light" ? "Dark" : "Light"}</span>
+                </button>
+              )}
+              
+              <button
+                onClick={() => {
+                  handleDownload();
+                  setIsOpen(false);
+                }}
+                disabled={isGenerating}
+                className="flex-1 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full text-sm font-medium justify-center disabled:opacity-50"
+              >
+                <Download className="w-4 h-4" />
+                {isGenerating ? "Generating..." : "Resume"}
+              </button>
+            </div>
           </motion.div>
         )}
       </div>
     </motion.nav>
   );
 }
+

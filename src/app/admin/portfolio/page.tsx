@@ -5,28 +5,62 @@ import { motion } from "framer-motion";
 import {
   FileText,
   Save,
-  Plus,
-  Trash2,
   Loader2,
   RefreshCcw,
   AlertCircle,
   CheckCircle,
+  Code,
+  FormInput,
+  User,
+  Briefcase,
+  Award,
 } from "lucide-react";
 
+interface PortfolioData {
+  personal?: {
+    name?: string;
+    title?: string;
+    tagline?: string;
+    email?: string;
+    phone?: string;
+    location?: string;
+    website?: string;
+    profileImage?: string;
+  };
+  social?: {
+    github?: string;
+    linkedin?: string;
+    email?: string;
+  };
+  about?: {
+    bio?: string[];
+  };
+  skills?: {
+    frontend?: string[];
+    backend?: string[];
+    tools?: string[];
+    other?: string[];
+  };
+  [key: string]: any;
+}
+
 export default function PortfolioEditor() {
+  const [data, setData] = useState<PortfolioData>({});
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [editMode, setEditMode] = useState<"ui" | "json">("json");
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/portfolio");
       const json = await res.json();
-      // If data is null, default to an empty object template or just {}
-      setCode(JSON.stringify(json.data || {}, null, 2));
+      const portfolioData = json.data || {};
+      setData(portfolioData);
+      setCode(JSON.stringify(portfolioData, null, 2));
       setStatus(null);
     } catch (error) {
       console.error("Failed to fetch portfolio data:", error);
@@ -51,28 +85,75 @@ export default function PortfolioEditor() {
     setStatus(null);
 
     try {
-      // Validate JSON first
-      const parsedData = JSON.parse(code);
+      let dataToSave = data;
+
+      if (editMode === "json") {
+        try {
+          dataToSave = JSON.parse(code);
+          setData(dataToSave);
+        } catch (e) {
+          throw new Error("Invalid JSON format");
+        }
+      } else {
+        setCode(JSON.stringify(data, null, 2));
+      }
 
       const res = await fetch("/api/admin/portfolio", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsedData),
+        body: JSON.stringify(dataToSave),
       });
 
       if (!res.ok) throw new Error("Failed to save");
 
       setStatus({ type: "success", message: "Portfolio updated successfully!" });
-      // Re-format the code on save to look pretty
-      setCode(JSON.stringify(parsedData, null, 2));
+      setCode(JSON.stringify(dataToSave, null, 2));
     } catch (error: any) {
       setStatus({
         type: "error",
-        message: error instanceof SyntaxError ? "Invalid JSON format" : "Failed to save changes",
+        message: error.message || "Failed to save changes",
       });
     } finally {
       setSaving(false);
     }
+  };
+
+  const updateNestedField = (path: string[], value: any) => {
+    const newData = { ...data };
+    let current: any = newData;
+    
+    for (let i = 0; i < path.length - 1; i++) {
+      if (!current[path[i]]) {
+        current[path[i]] = {};
+      }
+      current = current[path[i]];
+    }
+    
+    current[path[path.length - 1]] = value;
+    setData(newData);
+  };
+
+  const updateSkillCategory = (category: string, skills: string[]) => {
+    setData({
+      ...data,
+      skills: {
+        ...(data.skills || {}),
+        [category]: skills,
+      },
+    });
+  };
+
+  const addSkill = (category: string) => {
+    const skill = prompt(`Enter skill for ${category}:`);
+    if (skill) {
+      const currentSkills = data.skills?.[category] || [];
+      updateSkillCategory(category, [...currentSkills, skill]);
+    }
+  };
+
+  const removeSkill = (category: string, index: number) => {
+    const currentSkills = data.skills?.[category] || [];
+    updateSkillCategory(category, currentSkills.filter((_, i) => i !== index));
   };
 
   if (loading) {
@@ -84,21 +165,45 @@ export default function PortfolioEditor() {
   }
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col">
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <FileText className="w-6 h-6 text-blue-500" />
             Portfolio Editor
           </h1>
-          <p className="text-gray-400 text-sm mt-1">Edit your portfolio content directly (JSON)</p>
+          <p className="text-gray-400 text-sm mt-1">Edit your portfolio content using UI or JSON</p>
         </div>
 
         <div className="flex items-center gap-3">
+          <div className="flex bg-gray-800 rounded-lg p-1 border border-gray-700">
+            <button
+              onClick={() => setEditMode("ui")}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                editMode === "ui" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
+              }`}
+            >
+              <FormInput className="w-4 h-4" />
+              UI
+            </button>
+            <button
+              onClick={() => {
+                setEditMode("json");
+                setCode(JSON.stringify(data, null, 2));
+              }}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                editMode === "json" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
+              }`}
+            >
+              <Code className="w-4 h-4" />
+              JSON
+            </button>
+          </div>
+
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50"
+            className="p-2 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-lg border border-gray-700 transition-all disabled:opacity-50"
             title="Refresh Data"
           >
             <RefreshCcw className={`w-5 h-5 ${refreshing ? "animate-spin" : ""}`} />
@@ -119,32 +224,187 @@ export default function PortfolioEditor() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`mb-4 p-4 rounded-lg border flex items-center gap-3 ${
+          className={`p-4 rounded-lg border flex items-center gap-3 ${
             status.type === "success"
               ? "bg-green-500/10 border-green-500/20 text-green-400"
               : "bg-red-500/10 border-red-500/20 text-red-400"
           }`}
         >
-          {status.type === "success" ? (
-            <CheckCircle className="w-5 h-5" />
-          ) : (
-            <AlertCircle className="w-5 h-5" />
-          )}
+          {status.type === "success" ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           {status.message}
         </motion.div>
       )}
 
-      <div className="flex-1 relative">
-        <textarea
-          value={code}
-          onChange={(e) => {
-            setCode(e.target.value);
-            setStatus(null);
-          }}
-          className="w-full h-[calc(100vh-16rem)] bg-gray-900 text-gray-300 font-mono text-sm p-4 rounded-lg border border-gray-700 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-          spellCheck="false"
-        />
-      </div>
+      {editMode === "json" ? (
+        <div className="flex-1">
+          <textarea
+            value={code}
+            onChange={(e) => {
+              setCode(e.target.value);
+              setStatus(null);
+            }}
+            className="w-full h-[calc(100vh-16rem)] bg-gray-900 text-gray-300 font-mono text-sm p-4 rounded-lg border border-gray-700 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+            spellCheck="false"
+          />
+        </div>
+      ) : (
+        <div className="space-y-6 overflow-y-auto pr-2">
+          {/* Personal Information */}
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+            <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <User className="w-5 h-5 text-blue-500" />
+              Personal Information
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Name</label>
+                <input
+                  type="text"
+                  value={data.personal?.name || ""}
+                  onChange={(e) => updateNestedField(["personal", "name"], e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Title</label>
+                <input
+                  type="text"
+                  value={data.personal?.title || ""}
+                  onChange={(e) => updateNestedField(["personal", "title"], e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm text-gray-400 mb-2">Tagline</label>
+                <input
+                  type="text"
+                  value={data.personal?.tagline || ""}
+                  onChange={(e) => updateNestedField(["personal", "tagline"], e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Email</label>
+                <input
+                  type="email"
+                  value={data.personal?.email || ""}
+                  onChange={(e) => updateNestedField(["personal", "email"], e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Phone</label>
+                <input
+                  type="tel"
+                  value={data.personal?.phone || ""}
+                  onChange={(e) => updateNestedField(["personal", "phone"], e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Location</label>
+                <input
+                  type="text"
+                  value={data.personal?.location || ""}
+                  onChange={(e) => updateNestedField(["personal", "location"], e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Website</label>
+                <input
+                  type="url"
+                  value={data.personal?.website || ""}
+                  onChange={(e) => updateNestedField(["personal", "website"], e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Social Links */}
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+            <h2 className="text-lg font-bold text-white mb-4">Social Links</h2>
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">GitHub</label>
+                <input
+                  type="url"
+                  value={data.social?.github || ""}
+                  onChange={(e) => updateNestedField(["social", "github"], e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">LinkedIn</label>
+                <input
+                  type="url"
+                  value={data.social?.linkedin || ""}
+                  onChange={(e) => updateNestedField(["social", "linkedin"], e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Skills */}
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+            <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <Briefcase className="w-5 h-5 text-purple-500" />
+              Skills
+            </h2>
+            
+            {["frontend", "backend", "tools", "other"].map((category) => (
+              <div key={category} className="mb-6 last:mb-0">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-gray-300 capitalize">{category}</h3>
+                  <button
+                    onClick={() => addSkill(category)}
+                    className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
+                  >
+                    + Add
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {(data.skills?.[category] || []).map((skill: string, index: number) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 bg-gray-900 px-3 py-1.5 rounded-lg group"
+                    >
+                      <span className="text-gray-300 text-sm">{skill}</span>
+                      <button
+                        onClick={() => removeSkill(category, index)}
+                        className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  {(!data.skills?.[category] || data.skills[category].length === 0) && (
+                    <p className="text-gray-500 text-sm">No {category} skills added</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Complex Data Notice */}
+          <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl border border-blue-500/20 p-6">
+            <div className="flex items-start gap-3">
+              <Award className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="text-sm font-semibold text-white mb-2">Complex Data Structures</h3>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  For editing complex data like <strong>Experience</strong>, <strong>Projects</strong>, <strong>Education</strong>, 
+                  <strong> Awards</strong>, <strong>Testimonials</strong>, and <strong>Achievements</strong>, 
+                  please use the <strong className="text-blue-400">JSON Editor</strong> mode. 
+                  The JSON mode provides full control over nested arrays and objects.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

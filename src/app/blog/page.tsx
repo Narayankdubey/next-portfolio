@@ -2,6 +2,7 @@
 import { useEffect, useState, useMemo } from "react";
 import BlogCard from "@/components/BlogCard";
 import EmptyBlogState from "@/components/EmptyBlogState";
+import { BlogCardSkeleton } from "@/components/SkeletonLoader";
 import Navbar from "@/components/Navbar";
 import { Search, SlidersHorizontal } from "lucide-react";
 import styles from "./BlogPage.module.css";
@@ -16,6 +17,8 @@ interface BlogSummary {
   createdAt?: string;
   likeCount?: number;
   commentCount?: number;
+  viewCount?: number;
+  slug?: string;
 }
 
 type SortOption = "newest" | "oldest" | "a-z" | "z-a";
@@ -80,7 +83,12 @@ export default function BlogPage() {
       <>
         <Navbar />
         <div className={styles.container}>
-          <p>Loading...</p>
+          <h1 className={styles.title}>Blog</h1>
+          <div className={styles.grid}>
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <BlogCardSkeleton key={i} />
+            ))}
+          </div>
         </div>
       </>
     );
@@ -131,7 +139,7 @@ export default function BlogPage() {
         {filteredAndSortedBlogs.length === 0 ? (
           searchQuery ? (
             <div className={styles.noResults}>
-              <p>No blogs found matching "{searchQuery}"</p>
+              <p>No blogs found matching &quot;{searchQuery}&quot;</p>
               <button onClick={() => setSearchQuery("")} className={styles.clearButton}>
                 Clear search
               </button>
@@ -153,6 +161,8 @@ export default function BlogPage() {
                 createdAt={b.createdAt}
                 likeCount={b.likeCount}
                 commentCount={b.commentCount}
+                viewCount={b.viewCount}
+                slug={b.slug}
               />
             ))}
           </div>

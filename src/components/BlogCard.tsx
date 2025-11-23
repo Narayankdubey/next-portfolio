@@ -14,6 +14,8 @@ interface BlogCardProps {
   createdAt?: string;
   likeCount?: number;
   commentCount?: number;
+  viewCount?: number;
+  slug?: string;
 }
 
 // Strip HTML tags from text
@@ -31,12 +33,14 @@ export default function BlogCard({
   createdAt,
   likeCount = 0,
   commentCount = 0,
+  viewCount = 0,
+  slug,
 }: BlogCardProps) {
   const portfolio = usePortfolio();
   const isExternal = type === "external" && externalUrl;
   const linkProps = isExternal
     ? { href: externalUrl!, target: "_blank", rel: "noopener noreferrer" }
-    : { href: `/blog/${id}` };
+    : { href: `/blog/${slug || id}` };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -114,6 +118,24 @@ export default function BlogCard({
           <span className={styles.engagementItem}>
             <MessageCircle className={styles.engagementIcon} />
             {commentCount}
+          </span>
+          <span className={styles.engagementItem}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={styles.engagementIcon}
+            >
+              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            {viewCount}
           </span>
         </div>
 

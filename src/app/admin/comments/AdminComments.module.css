@@ -17,6 +17,45 @@
   margin-bottom: 1.5rem;
 }
 
+.refreshButton {
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  color: #667eea;
+  width: 40px;
+  height: 40px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 1rem;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background: rgba(102, 126, 234, 0.2);
+  transform: translateY(-2px);
+}
+
+.refreshButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.refreshIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .titleIcon {
   width: 32px;
   height: 32px;
@@ -108,11 +147,22 @@
   gap: 1rem;
 }
 
+.commentInfo {
+  flex: 1;
+}
+
 .blogTitle {
   font-size: 1.1rem;
   font-weight: 700;
   margin: 0 0 0.25rem 0;
   color: var(--text-primary, #1e293b);
+}
+
+.commentAuthor {
+  font-size: 0.9rem;
+  color: #667eea;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
 }
 
 .commentDate {

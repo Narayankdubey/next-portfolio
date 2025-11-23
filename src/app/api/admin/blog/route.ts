@@ -12,6 +12,7 @@ interface BlogPostInput {
   thumbnailUrl?: string;
   isVisible?: boolean;
   likeCount?: number;
+  slug?: string;
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }
@@ -60,6 +61,7 @@ export async function POST(request: Request) {
       thumbnailUrl: p.thumbnailUrl,
       isVisible: p.isVisible !== undefined ? p.isVisible : true,
       likeCount: p.likeCount ?? 0,
+      slug: p.slug,
       createdAt: p.createdAt ? new Date(p.createdAt) : new Date(),
       updatedAt: p.updatedAt ? new Date(p.updatedAt) : new Date(),
     }));

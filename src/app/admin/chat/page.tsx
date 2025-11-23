@@ -34,6 +34,7 @@ interface DisplayMessage {
 
 interface ChatSession {
   _id: string; // userId
+  userName?: string | null; // User name from VisitorStats
   lastMessage: RawMessage;
   messageCount: number;
   messages: RawMessage[];
@@ -183,7 +184,7 @@ export default function ChatHistoryPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-medium text-white text-sm truncate">
-                      {session._id.replace("user_", "User ")}
+                      {session.userName || session._id.replace("user_", "User ")}
                     </span>
                     <span className="text-xs text-gray-500 flex items-center gap-1">
                       <Clock className="w-3 h-3" />
@@ -221,7 +222,7 @@ export default function ChatHistoryPage() {
                   </button>
                   <div>
                     <h3 className="font-bold text-white">
-                      {selectedSession._id.replace("user_", "User ")}
+                      {selectedSession.userName || selectedSession._id.replace("user_", "User ")}
                     </h3>
                     <p className="text-xs text-gray-400">
                       Last active:{" "}

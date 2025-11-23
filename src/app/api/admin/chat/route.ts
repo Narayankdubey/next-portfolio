@@ -75,8 +75,20 @@ export async function GET(request: NextRequest) {
       sessions = Object.values(groups);
     }
 
+    // Enrich sessions with user names from VisitorStats
+    const VisitorStats = (await import("@/models/VisitorStats")).default;
+    const userIds = sessions.map((s) => s._id);
+    const visitors = await VisitorStats.find({ userId: { $in: userIds } }).lean();
+    const visitorMap = new Map(visitors.map((v: any) => [v.userId, v.name || null]));
+
+    // Add userName to each session
+    const enrichedSessions = sessions.map((session) => ({
+      ...session,
+      userName: visitorMap.get(session._id) || null,
+    }));
+
     return NextResponse.json({
-      sessions,
+      sessions: enrichedSessions,
       debug: {
         totalMessages: totalCount,
         collectionName: ChatMessage.collection.name,

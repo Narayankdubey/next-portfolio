@@ -28,6 +28,7 @@ import TestimonialCarousel from "@/components/TestimonialCarousel";
 import VisitorCounter from "@/components/VisitorCounter";
 import MobileWarning from "@/components/MobileWarning";
 import BlogWidget from "@/components/BlogWidget";
+import WelcomeModal from "@/components/WelcomeModal";
 import OnboardingTour from "@/components/OnboardingTour";
 import { Github, Linkedin, Mail } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
@@ -158,6 +159,9 @@ export default function Home() {
 
       {/* Onboarding Tour */}
       <OnboardingTour onOpenChatbot={() => setChatbotOpen(true)} />
+
+      {/* Welcome Modal */}
+      <WelcomeModal />
 
       {/* Enhancement Components */}
       <ScrollProgress />

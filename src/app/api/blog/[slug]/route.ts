@@ -2,17 +2,17 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import BlogPost from "@/models/BlogPost";
 
-// GET /api/blog/[id] - returns full content for internal posts only
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+// GET /api/blog/[slug] - returns full content for internal posts only
+export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   try {
     await dbConnect();
-    const { id } = await params;
+    const { slug } = await params;
 
-    if (!id) {
-      return NextResponse.json({ success: false, error: "Missing id parameter" }, { status: 400 });
+    if (!slug) {
+      return NextResponse.json({ success: false, error: "Missing slug parameter" }, { status: 400 });
     }
 
-    const post = await BlogPost.findById(id).lean();
+    const post = await BlogPost.findOne({ slug }).lean();
     if (!post) {
       return NextResponse.json({ success: false, error: "Blog post not found" }, { status: 404 });
     }

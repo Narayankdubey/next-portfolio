@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, BookOpen } from "lucide-react";
+import { BlogWidgetSkeleton } from "./SkeletonLoader";
 import styles from "./BlogWidget.module.css";
 
 interface BlogSummary {
   id: string;
+  slug?: string;
   title: string;
   description: string;
   thumbnailUrl?: string;
@@ -40,7 +42,11 @@ export default function BlogWidget() {
   if (loading) {
     return (
       <section className={styles.widget} data-tour="blog-widget">
-        <div className={styles.loading}>Loading blogs...</div>
+        <h2 className={styles.widgetTitle}>
+          <BookOpen className={styles.titleIcon} />
+          Latest Blog Posts
+        </h2>
+        <BlogWidgetSkeleton />
       </section>
     );
   }
@@ -64,7 +70,7 @@ export default function BlogWidget() {
           const isExternal = blog.type === "external" && blog.externalUrl;
           const linkProps = isExternal
             ? { href: blog.externalUrl!, target: "_blank", rel: "noopener noreferrer" }
-            : { href: `/blog/${blog.id}` };
+            : { href: `/blog/${blog.slug || blog.id}` };
 
           return (
             <Link key={blog.id} {...linkProps} className={styles.card}>

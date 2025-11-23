@@ -16,11 +16,18 @@ export async function GET() {
     const blogs = await BlogPost.find({ _id: { $in: blogIds } }).lean();
     const blogMap = new Map(blogs.map((b: any) => [b._id.toString(), b.title]));
 
+    // Get user names from VisitorStats
+    const userIds = [...new Set(comments.map((c: any) => c.userId).filter(Boolean))];
+    const VisitorStats = (await import("@/models/VisitorStats")).default;
+    const visitors = await VisitorStats.find({ userId: { $in: userIds } }).lean();
+    const nameMap = new Map(visitors.map((v: any) => [v.userId, v.name || null]));
+
     const enriched = comments.map((c: any) => ({
       id: c._id.toString(),
       blogId: c.blogId.toString(),
       blogTitle: blogMap.get(c.blogId.toString()) || "Unknown Blog",
       content: c.content,
+      authorName: c.userId ? (nameMap.get(c.userId) || "Anonymous") : "Anonymous",
       isVisible: c.isVisible,
       createdAt: c.createdAt.toISOString(),
     }));

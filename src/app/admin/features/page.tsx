@@ -13,6 +13,8 @@ import {
   Plus,
   Trash2,
   Settings,
+  Code,
+  FormInput,
 } from "lucide-react";
 
 interface FeatureFlags {
@@ -34,6 +36,8 @@ export default function FeatureFlagsEditor() {
   const [saving, setSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [editMode, setEditMode] = useState<"ui" | "json">("ui");
+  const [jsonCode, setJsonCode] = useState("");
 
   // New feature state
   const [newFeatureName, setNewFeatureName] = useState("");
@@ -51,6 +55,7 @@ export default function FeatureFlagsEditor() {
           flagsData.userCustomizable = { features: [], sections: [] };
         }
         setFlags(flagsData);
+        setJsonCode(JSON.stringify(flagsData, null, 2));
       }
     } catch (error) {
       console.error("Failed to fetch feature flags:", error);
@@ -70,34 +75,39 @@ export default function FeatureFlagsEditor() {
   };
 
   const handleSave = async () => {
-    if (!flags) return;
     setSaving(true);
     setStatus(null);
 
     try {
-      console.log("Saving feature flags:", flags);
+      let dataToSave = flags;
+
+      // If in JSON mode, parse and validate JSON first
+      if (editMode === "json") {
+        try {
+          dataToSave = JSON.parse(jsonCode);
+          setFlags(dataToSave); // Update UI state with parsed JSON
+        } catch (e) {
+          throw new Error("Invalid JSON format");
+        }
+      } else {
+        // Sync JSON code with current flags
+        setJsonCode(JSON.stringify(flags, null, 2));
+      }
 
       const res = await fetch("/api/admin/features", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(flags),
+        body: JSON.stringify(dataToSave),
       });
-
-      console.log("Save response status:", res.status);
 
       if (!res.ok) {
         const errorData = await res.json();
-        console.error("Save failed with error:", errorData);
         throw new Error(errorData.error || "Failed to save");
       }
-
-      const responseData = await res.json();
-      console.log("Save successful:", responseData);
 
       setStatus({ type: "success", message: "Feature flags updated successfully!" });
       setTimeout(() => setStatus(null), 3000);
     } catch (error: any) {
-      console.error("Failed to save flags:", error);
       setStatus({ type: "error", message: error.message || "Failed to save changes" });
     } finally {
       setSaving(false);
@@ -283,6 +293,36 @@ export default function FeatureFlagsEditor() {
           <p className="text-gray-400 text-sm mt-1">Manage application features and availability</p>
         </div>
         <div className="flex items-center gap-3">
+          {/* Mode Toggle */}
+          <div className="flex bg-gray-800 rounded-lg p-1 border border-gray-700">
+            <button
+              onClick={() => setEditMode("ui")}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                editMode === "ui"
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              <FormInput className="w-4 h-4" />
+              UI
+            </button>
+            <button
+              onClick={() => {
+                setEditMode("json");
+                // Sync JSON code with current flags when switching to JSON mode
+                if (flags) setJsonCode(JSON.stringify(flags, null, 2));
+              }}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                editMode === "json"
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              <Code className="w-4 h-4" />
+              JSON
+            </button>
+          </div>
+
           <button
             onClick={handleRefresh}
             disabled={refreshing}
@@ -324,53 +364,76 @@ export default function FeatureFlagsEditor() {
         )}
       </AnimatePresence>
 
-      {/* Add New Feature */}
-      <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 flex flex-col md:flex-row gap-4 items-end md:items-center">
-        <div className="flex-1 w-full">
-          <label className="block text-xs text-gray-400 mb-1">New Feature Name</label>
-          <input
-            type="text"
-            value={newFeatureName}
-            onChange={(e) => setNewFeatureName(e.target.value)}
-            placeholder="e.g. Dark Mode, Beta Feature"
-            className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+      {editMode === "ui" ? (
+        <>
+          {/* Add New Feature */}
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 flex flex-col md:flex-row gap-4 items-end md:items-center">
+            <div className="flex-1 w-full">
+              <label className="block text-xs text-gray-400 mb-1">New Feature Name</label>
+              <input
+                type="text"
+                value={newFeatureName}
+                onChange={(e) => setNewFeatureName(e.target.value)}
+                placeholder="e.g. Dark Mode, Beta Feature"
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+            <div className="w-full md:w-48">
+              <label className="block text-xs text-gray-400 mb-1">Type</label>
+              <select
+                value={newFeatureType}
+                onChange={(e) => setNewFeatureType(e.target.value as any)}
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                <option value="features">Global Feature</option>
+                <option value="sections">Page Section</option>
+              </select>
+            </div>
+            <button
+              onClick={handleAddFeature}
+              disabled={!newFeatureName.trim()}
+              className="w-full md:w-auto bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Plus className="w-4 h-4" />
+              Add
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 overflow-y-auto pb-8">
+            {renderSection(
+              "Global Features",
+              <ToggleLeft className="w-5 h-5 text-purple-500" />,
+              "features",
+              "blue"
+            )}
+            {renderSection(
+              "Page Sections",
+              <ToggleRight className="w-5 h-5 text-green-500" />,
+              "sections",
+              "green"
+            )}
+          </div>
+        </>
+      ) : (
+        /* JSON Editor Mode */
+        <div className="flex-1">
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 mb-3">
+            <h3 className="text-sm font-medium text-gray-300 mb-1">JSON Editor</h3>
+            <p className="text-xs text-gray-500">
+              Edit the feature flags data in JSON format. Make sure the JSON is valid before saving.
+            </p>
+          </div>
+          <textarea
+            value={jsonCode}
+            onChange={(e) => {
+              setJsonCode(e.target.value);
+              setStatus(null);
+            }}
+            className="w-full h-[calc(100vh-20rem)] bg-gray-900 text-gray-300 font-mono text-sm p-4 rounded-lg border border-gray-700 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+            spellCheck="false"
           />
         </div>
-        <div className="w-full md:w-48">
-          <label className="block text-xs text-gray-400 mb-1">Type</label>
-          <select
-            value={newFeatureType}
-            onChange={(e) => setNewFeatureType(e.target.value as any)}
-            className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
-          >
-            <option value="features">Global Feature</option>
-            <option value="sections">Page Section</option>
-          </select>
-        </div>
-        <button
-          onClick={handleAddFeature}
-          disabled={!newFeatureName.trim()}
-          className="w-full md:w-auto bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Plus className="w-4 h-4" />
-          Add
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 overflow-y-auto pb-8">
-        {renderSection(
-          "Global Features",
-          <ToggleLeft className="w-5 h-5 text-purple-500" />,
-          "features",
-          "blue"
-        )}
-        {renderSection(
-          "Page Sections",
-          <ToggleRight className="w-5 h-5 text-green-500" />,
-          "sections",
-          "green"
-        )}
-      </div>
+      )}
     </div>
   );
 }

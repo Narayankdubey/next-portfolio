@@ -2,18 +2,18 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import BlogPost from "@/models/BlogPost";
 
-// POST /api/blog/[id]/like - Increment like count
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+// POST /api/blog/[slug]/like - Increment like count
+export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   try {
     await dbConnect();
-    const { id } = await params;
+    const { slug } = await params;
 
-    if (!id) {
-      return NextResponse.json({ success: false, error: "Missing id parameter" }, { status: 400 });
+    if (!slug) {
+      return NextResponse.json({ success: false, error: "Missing slug parameter" }, { status: 400 });
     }
 
     // Increment like count
-    const updated = await BlogPost.findByIdAndUpdate(id, { $inc: { likeCount: 1 } }, { new: true });
+    const updated = await BlogPost.findOneAndUpdate({ slug }, { $inc: { likeCount: 1 } }, { new: true });
 
     if (!updated) {
       return NextResponse.json({ success: false, error: "Blog post not found" }, { status: 404 });

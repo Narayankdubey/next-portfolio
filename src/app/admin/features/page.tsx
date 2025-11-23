@@ -298,9 +298,7 @@ export default function FeatureFlagsEditor() {
             <button
               onClick={() => setEditMode("ui")}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                editMode === "ui"
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-400 hover:text-white"
+                editMode === "ui" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
               }`}
             >
               <FormInput className="w-4 h-4" />
@@ -313,9 +311,7 @@ export default function FeatureFlagsEditor() {
                 if (flags) setJsonCode(JSON.stringify(flags, null, 2));
               }}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                editMode === "json"
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-400 hover:text-white"
+                editMode === "json" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
               }`}
             >
               <Code className="w-4 h-4" />

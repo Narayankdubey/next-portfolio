@@ -9,7 +9,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     const { slug } = await params;
 
     if (!slug) {
-      return NextResponse.json({ success: false, error: "Missing slug parameter" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Missing slug parameter" },
+        { status: 400 }
+      );
     }
 
     const post = await BlogPost.findOne({ slug }).lean();

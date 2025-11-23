@@ -24,7 +24,7 @@ export default function WelcomeModal() {
 
     try {
       const userId = localStorage.getItem("chatUserId");
-      
+
       if (userId && name.trim()) {
         // Save name to VisitorStats
         await fetch("/api/visitor/name", {
@@ -32,7 +32,7 @@ export default function WelcomeModal() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId, name: name.trim() }),
         });
-        
+
         // Save name to localStorage for quick access
         localStorage.setItem("userName", name.trim());
       }

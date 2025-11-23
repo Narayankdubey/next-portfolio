@@ -9,11 +9,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     const { slug } = await params;
 
     if (!slug) {
-      return NextResponse.json({ success: false, error: "Missing slug parameter" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Missing slug parameter" },
+        { status: 400 }
+      );
     }
 
     // Increment like count
-    const updated = await BlogPost.findOneAndUpdate({ slug }, { $inc: { likeCount: 1 } }, { new: true });
+    const updated = await BlogPost.findOneAndUpdate(
+      { slug },
+      { $inc: { likeCount: 1 } },
+      { new: true }
+    );
 
     if (!updated) {
       return NextResponse.json({ success: false, error: "Blog post not found" }, { status: 404 });

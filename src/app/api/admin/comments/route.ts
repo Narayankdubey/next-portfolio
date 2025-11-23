@@ -27,7 +27,7 @@ export async function GET() {
       blogId: c.blogId.toString(),
       blogTitle: blogMap.get(c.blogId.toString()) || "Unknown Blog",
       content: c.content,
-      authorName: c.userId ? (nameMap.get(c.userId) || "Anonymous") : "Anonymous",
+      authorName: c.userId ? nameMap.get(c.userId) || "Anonymous" : "Anonymous",
       isVisible: c.isVisible,
       createdAt: c.createdAt.toISOString(),
     }));

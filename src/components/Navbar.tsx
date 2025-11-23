@@ -278,7 +278,7 @@ export default function Navbar() {
                 {item.name}
               </a>
             ))}
-            
+
             <div className="flex gap-3">
               {toggleTheme && (
                 <button
@@ -293,7 +293,7 @@ export default function Navbar() {
                   <span className="text-sm">{theme === "light" ? "Dark" : "Light"}</span>
                 </button>
               )}
-              
+
               <button
                 onClick={() => {
                   handleDownload();
@@ -312,4 +312,3 @@ export default function Navbar() {
     </motion.nav>
   );
 }
-

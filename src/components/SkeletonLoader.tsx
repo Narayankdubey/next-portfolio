@@ -7,8 +7,8 @@ export function Skeleton({ className = "" }: SkeletonProps) {
     <div
       className={`animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded ${className}`}
       style={{
-        backgroundSize: '200% 100%',
-        animation: 'shimmer 1.5s infinite',
+        backgroundSize: "200% 100%",
+        animation: "shimmer 1.5s infinite",
       }}
     />
   );
@@ -56,11 +56,11 @@ export function BlogDetailSkeleton() {
     <div className="max-w-900px mx-auto px-4 py-8 space-y-6">
       {/* Back button skeleton */}
       <Skeleton className="h-10 w-32" />
-      
+
       {/* Header */}
       <div className="space-y-4 pb-6 border-b border-gray-200 dark:border-gray-700">
         <Skeleton className="h-12 w-3/4" />
-        
+
         {/* Creator info */}
         <div className="flex items-center gap-3">
           <Skeleton className="h-12 w-12 rounded-full" />
@@ -69,7 +69,7 @@ export function BlogDetailSkeleton() {
             <Skeleton className="h-3 w-24" />
           </div>
         </div>
-        
+
         {/* Meta info */}
         <div className="flex gap-4">
           <Skeleton className="h-4 w-28" />
@@ -77,10 +77,10 @@ export function BlogDetailSkeleton() {
           <Skeleton className="h-4 w-20" />
         </div>
       </div>
-      
+
       {/* Action bar */}
       <Skeleton className="h-16 w-full rounded-lg" />
-      
+
       {/* Content */}
       <div className="space-y-3">
         <Skeleton className="h-4 w-full" />

@@ -9,7 +9,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     const { slug } = await params;
 
     if (!slug) {
-      return NextResponse.json({ success: false, error: "Missing slug parameter" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Missing slug parameter" },
+        { status: 400 }
+      );
     }
 
     // Increment view count

@@ -10,7 +10,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     const { slug } = await params;
 
     if (!slug) {
-      return NextResponse.json({ success: false, error: "Missing slug parameter" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Missing slug parameter" },
+        { status: 400 }
+      );
     }
 
     // Find blog by slug to get ID
@@ -29,7 +32,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
     // Get unique userIds
     const userIds = [...new Set(comments.map((c: any) => c.userId).filter(Boolean))];
-    
+
     // Fetch names from VisitorStats
     const VisitorStats = (await import("@/models/VisitorStats")).default;
     const visitors = await VisitorStats.find({ userId: { $in: userIds } }).lean();
@@ -38,7 +41,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     const cleaned = comments.map((c: any) => ({
       id: c._id.toString(),
       content: c.content,
-      authorName: c.userId ? (nameMap.get(c.userId) || "Anonymous") : "Anonymous",
+      authorName: c.userId ? nameMap.get(c.userId) || "Anonymous" : "Anonymous",
       createdAt: c.createdAt.toISOString(),
     }));
 
@@ -59,7 +62,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     const { slug } = await params;
 
     if (!slug) {
-      return NextResponse.json({ success: false, error: "Missing slug parameter" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Missing slug parameter" },
+        { status: 400 }
+      );
     }
 
     // Find blog by slug to get ID
@@ -68,7 +74,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       return NextResponse.json({ success: false, error: "Blog post not found" }, { status: 404 });
     }
 
-    const { content, userId } = await request.json();
+    const { content, userId, authorName } = await request.json();
 
     if (!content || content.trim().length === 0) {
       return NextResponse.json(

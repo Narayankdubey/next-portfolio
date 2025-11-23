@@ -29,9 +29,6 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Update visitor name error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to update name" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: "Failed to update name" }, { status: 500 });
   }
 }

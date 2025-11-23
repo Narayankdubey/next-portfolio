@@ -16,6 +16,15 @@ import {
   Award,
 } from "lucide-react";
 
+// --- TYPE DEFINITIONS ---
+
+interface SkillsData {
+  frontend?: string[];
+  backend?: string[];
+  tools?: string[];
+  other?: string[];
+}
+
 interface PortfolioData {
   personal?: {
     name?: string;
@@ -35,14 +44,15 @@ interface PortfolioData {
   about?: {
     bio?: string[];
   };
-  skills?: {
-    frontend?: string[];
-    backend?: string[];
-    tools?: string[];
-    other?: string[];
-  };
+  skills?: SkillsData;
   [key: string]: any;
 }
+
+// 1. Define the union type for all valid skill keys
+type SkillCategory = keyof SkillsData;
+
+// 2. Define the list of categories using the new type
+const SKILL_CATEGORIES: SkillCategory[] = ["frontend", "backend", "tools", "other"];
 
 export default function PortfolioEditor() {
   const [data, setData] = useState<PortfolioData>({});
@@ -56,6 +66,7 @@ export default function PortfolioEditor() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      // NOTE: Placeholder fetch calls, replace with actual API endpoint
       const res = await fetch("/api/admin/portfolio");
       const json = await res.json();
       const portfolioData = json.data || {};
@@ -98,6 +109,7 @@ export default function PortfolioEditor() {
         setCode(JSON.stringify(data, null, 2));
       }
 
+      // NOTE: Placeholder fetch calls, replace with actual API endpoint
       const res = await fetch("/api/admin/portfolio", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -108,6 +120,7 @@ export default function PortfolioEditor() {
 
       setStatus({ type: "success", message: "Portfolio updated successfully!" });
       setCode(JSON.stringify(dataToSave, null, 2));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       setStatus({
         type: "error",
@@ -118,22 +131,25 @@ export default function PortfolioEditor() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateNestedField = (path: string[], value: any) => {
     const newData = { ...data };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let current: any = newData;
-    
+
     for (let i = 0; i < path.length - 1; i++) {
       if (!current[path[i]]) {
         current[path[i]] = {};
       }
       current = current[path[i]];
     }
-    
+
     current[path[path.length - 1]] = value;
     setData(newData);
   };
 
-  const updateSkillCategory = (category: string, skills: string[]) => {
+  // 3. Update updateSkillCategory signature
+  const updateSkillCategory = (category: SkillCategory, skills: string[]) => {
     setData({
       ...data,
       skills: {
@@ -143,17 +159,25 @@ export default function PortfolioEditor() {
     });
   };
 
-  const addSkill = (category: string) => {
+  // 4. Update addSkill signature (Fixed TypeScript Error)
+  const addSkill = (category: SkillCategory) => {
+    // Prompt is generally discouraged in React, but kept for function parity
     const skill = prompt(`Enter skill for ${category}:`);
     if (skill) {
+      // TypeScript now knows category is a valid key
       const currentSkills = data.skills?.[category] || [];
       updateSkillCategory(category, [...currentSkills, skill]);
     }
   };
 
-  const removeSkill = (category: string, index: number) => {
+  // 5. Update removeSkill signature (Fixed TypeScript Error)
+  const removeSkill = (category: SkillCategory, index: number) => {
+    // TypeScript now knows category is a valid key
     const currentSkills = data.skills?.[category] || [];
-    updateSkillCategory(category, currentSkills.filter((_, i) => i !== index));
+    updateSkillCategory(
+      category,
+      currentSkills.filter((_, i) => i !== index)
+    );
   };
 
   if (loading) {
@@ -179,9 +203,8 @@ export default function PortfolioEditor() {
           <div className="flex bg-gray-800 rounded-lg p-1 border border-gray-700">
             <button
               onClick={() => setEditMode("ui")}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                editMode === "ui" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
-              }`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${editMode === "ui" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
+                }`}
             >
               <FormInput className="w-4 h-4" />
               UI
@@ -191,9 +214,8 @@ export default function PortfolioEditor() {
                 setEditMode("json");
                 setCode(JSON.stringify(data, null, 2));
               }}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                editMode === "json" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
-              }`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${editMode === "json" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
+                }`}
             >
               <Code className="w-4 h-4" />
               JSON
@@ -224,13 +246,16 @@ export default function PortfolioEditor() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`p-4 rounded-lg border flex items-center gap-3 ${
-            status.type === "success"
+          className={`p-4 rounded-lg border flex items-center gap-3 ${status.type === "success"
               ? "bg-green-500/10 border-green-500/20 text-green-400"
               : "bg-red-500/10 border-red-500/20 text-red-400"
-          }`}
+            }`}
         >
-          {status.type === "success" ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+          {status.type === "success" ? (
+            <CheckCircle className="w-5 h-5" />
+          ) : (
+            <AlertCircle className="w-5 h-5" />
+          )}
           {status.message}
         </motion.div>
       )}
@@ -353,8 +378,9 @@ export default function PortfolioEditor() {
               <Briefcase className="w-5 h-5 text-purple-500" />
               Skills
             </h2>
-            
-            {["frontend", "backend", "tools", "other"].map((category) => (
+
+            {/* Using the type-safe SKILL_CATEGORIES array */}
+            {SKILL_CATEGORIES.map((category) => (
               <div key={category} className="mb-6 last:mb-0">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-medium text-gray-300 capitalize">{category}</h3>
@@ -395,10 +421,11 @@ export default function PortfolioEditor() {
               <div>
                 <h3 className="text-sm font-semibold text-white mb-2">Complex Data Structures</h3>
                 <p className="text-xs text-gray-400 leading-relaxed">
-                  For editing complex data like <strong>Experience</strong>, <strong>Projects</strong>, <strong>Education</strong>, 
-                  <strong> Awards</strong>, <strong>Testimonials</strong>, and <strong>Achievements</strong>, 
-                  please use the <strong className="text-blue-400">JSON Editor</strong> mode. 
-                  The JSON mode provides full control over nested arrays and objects.
+                  For editing complex data like <strong>Experience</strong>,{" "}
+                  <strong>Projects</strong>, <strong>Education</strong>,<strong> Awards</strong>,{" "}
+                  <strong>Testimonials</strong>, and <strong>Achievements</strong>, please use the{" "}
+                  <strong className="text-blue-400">JSON Editor</strong> mode. The JSON mode
+                  provides full control over nested arrays and objects.
                 </p>
               </div>
             </div>

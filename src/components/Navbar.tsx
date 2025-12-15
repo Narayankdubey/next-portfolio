@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 import { Download, Menu, X, Moon, Sun } from "lucide-react";
 import { motion } from "framer-motion";
 import { usePortfolio } from "@/context/PortfolioContext";
@@ -15,6 +16,7 @@ const allNavItems = [
   { name: "Experience", href: "#experience" },
   { name: "Projects", href: "#projects" },
   { name: "Blog", href: "/blog", requiresFlag: "blog" as const },
+  { name: "Chat", href: "/chat" },
   { name: "Contact", href: "#contact" },
 ];
 
@@ -35,16 +37,25 @@ export default function Navbar() {
   );
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    const isOnBlogPage = pathname?.startsWith("/blog");
+    const isHomePage = pathname === "/";
     const isAnchorLink = href.startsWith("#");
 
-    if (isOnBlogPage && isAnchorLink) {
-      e.preventDefault();
-      router.push(`/${href}`);
+    if (!isHomePage && isAnchorLink) {
+      // If not on home page and clicking anchor, let Link handle the navigation to /#section
       setIsOpen(false);
-    } else if (isAnchorLink) {
+      return;
+    }
+
+    if (isHomePage && isAnchorLink) {
+      // If on home page and clicking anchor, prevent default to allow smooth scroll if needed
+      // or just let it be. But if we use Link with scroll={true} (default), it might be fine.
+      // However, usually for smooth scroll on same page we might want to handle it manually or let CSS handle it.
+      // For now, we'll just close the menu.
       setIsOpen(false);
     }
+
+    // For normal links (like /blog, /chat), just close menu
+    setIsOpen(false);
   };
 
   useEffect(() => {
@@ -201,29 +212,32 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 md:px-8" data-tour="nav">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <motion.a
-            href="#home"
-            whileHover={{ scale: 1.05 }}
+          <Link
+            href="/#home"
             className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
             onMouseEnter={playHover}
             onClick={playClick}
           >
-            {portfolio?.personal.name}
-          </motion.a>
+            <motion.span whileHover={{ scale: 1.05 }} className="inline-block">
+              {portfolio?.personal.name}
+            </motion.span>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <ul className="flex space-x-8">
               {navItems.map((item) => (
                 <li key={item.name}>
-                  <a
-                    href={item.href}
+                  <Link
+                    href={
+                      item.href.startsWith("#") && pathname !== "/" ? `/${item.href}` : item.href
+                    }
                     onClick={(e) => handleNavClick(e, item.href)}
                     className="theme-text-secondary hover:opacity-80 transition-opacity cursor-pointer"
                     onMouseEnter={playHover}
                   >
                     {item.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -269,14 +283,14 @@ export default function Navbar() {
             className="md:hidden py-4 space-y-4"
           >
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.name}
-                href={item.href}
+                href={item.href.startsWith("#") && pathname !== "/" ? `/${item.href}` : item.href}
                 onClick={(e) => handleNavClick(e, item.href)}
                 className="block text-gray-300 hover:text-white transition-colors"
               >
                 {item.name}
-              </a>
+              </Link>
             ))}
 
             <div className="flex gap-3">

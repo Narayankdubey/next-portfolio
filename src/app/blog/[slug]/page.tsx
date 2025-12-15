@@ -16,7 +16,6 @@ import {
   Volume2,
   VolumeX,
   Square,
-  Languages,
   Copy,
   Check,
 } from "lucide-react";
@@ -51,6 +50,7 @@ export default function BlogDetailPage() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState("");
+  const [authorName, setAuthorName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
   const [hasLiked, setHasLiked] = useState(false);
@@ -147,6 +147,7 @@ export default function BlogDetailPage() {
         body: JSON.stringify({
           content: commentText,
           userId,
+          authorName,
         }),
       });
       const json = await res.json();
@@ -198,7 +199,6 @@ export default function BlogDetailPage() {
   const handleShare = (platform: string) => {
     const url = window.location.href;
     const title = post?.title || "Check out this blog post";
-    const text = `${title} - ${url}`;
 
     const shareUrls: Record<string, string> = {
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
@@ -504,6 +504,17 @@ export default function BlogDetailPage() {
             Your comment will be visible after admin approval
           </p>
           <form onSubmit={handleCommentSubmit}>
+            <div className="mb-4">
+              <input
+                type="text"
+                className={`${styles.commentInput} h-10 px-3 mb-2`}
+                placeholder="Name (Optional)"
+                value={authorName}
+                onChange={(e) => setAuthorName(e.target.value)}
+                maxLength={50}
+                disabled={submitting}
+              />
+            </div>
             <textarea
               className={styles.commentInput}
               placeholder="Write your comment... (max 1000 characters)"

@@ -4,6 +4,7 @@ export interface IComment extends Document {
   blogId: mongoose.Types.ObjectId;
   content: string;
   userId?: string;
+  authorName?: string;
   isVisible: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -14,6 +15,7 @@ const CommentSchema = new Schema<IComment>(
     blogId: { type: Schema.Types.ObjectId, ref: "BlogPost", required: true },
     content: { type: String, required: true, maxlength: 1000 },
     userId: { type: String },
+    authorName: { type: String },
     isVisible: { type: Boolean, default: false },
   },
   { timestamps: true }

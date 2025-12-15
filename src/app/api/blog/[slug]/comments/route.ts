@@ -30,18 +30,20 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       .sort({ createdAt: -1 })
       .lean();
 
-    // Get unique userIds
+    // Get unique userIds for fallback
+     
     const userIds = [...new Set(comments.map((c: any) => c.userId).filter(Boolean))];
 
-    // Fetch names from VisitorStats
+    // Fetch names from VisitorStats for fallback
     const VisitorStats = (await import("@/models/VisitorStats")).default;
     const visitors = await VisitorStats.find({ userId: { $in: userIds } }).lean();
     const nameMap = new Map(visitors.map((v: any) => [v.userId, v.name || null]));
 
+     
     const cleaned = comments.map((c: any) => ({
       id: c._id.toString(),
       content: c.content,
-      authorName: c.userId ? nameMap.get(c.userId) || "Anonymous" : "Anonymous",
+      authorName: c.authorName || (c.userId ? nameMap.get(c.userId) : null) || "Anonymous",
       createdAt: c.createdAt.toISOString(),
     }));
 
@@ -95,9 +97,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       blogId: blog._id,
       content: content.trim(),
       userId: userId || undefined,
+      authorName: authorName ? authorName.trim() : undefined,
     });
 
-    // If userId is provided and authorName is present, update VisitorStats
+    // If userId is provided and authorName is present, update VisitorStats as well for consistency
     if (userId && authorName && authorName.trim()) {
       // Import VisitorStats dynamically to avoid circular dependency issues if any
       const VisitorStats = (await import("@/models/VisitorStats")).default;

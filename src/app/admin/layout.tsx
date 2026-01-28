@@ -29,7 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const cachedUser = localStorage.getItem("admin_user");
     if (cachedUser) {
       try {
-        setUser(JSON.parse(cachedUser));
+        setUser(JSON.parse(cachedUser)); // eslint-disable-line react-hooks/set-state-in-effect
       } catch (e) {
         localStorage.removeItem("admin_user");
       }

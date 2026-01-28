@@ -44,7 +44,7 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchStats();
+    fetchStats(); // eslint-disable-line react-hooks/set-state-in-effect
   }, []);
 
   const handleRefresh = async () => {

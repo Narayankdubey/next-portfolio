@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import styles from "./BlogForm.module.css";
 
 interface BlogFormProps {
@@ -35,35 +35,41 @@ export default function BlogForm({ onClose, existingPost }: BlogFormProps) {
     }
   }, [existingPost]);
 
-  const insertFormatting = (before: string, after: string = before) => {
-    const textarea = contentRef.current;
-    if (!textarea) return;
+  const insertFormatting = useCallback(
+    (before: string, after: string = before) => {
+      const textarea = contentRef.current;
+      if (!textarea) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-    const newText =
-      content.substring(0, start) + before + selectedText + after + content.substring(end);
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selectedText = content.substring(start, end);
+      const newText =
+        content.substring(0, start) + before + selectedText + after + content.substring(end);
 
-    setContent(newText);
+      setContent(newText);
 
-    // Restore cursor position
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + before.length, end + before.length);
-    }, 0);
-  };
+      // Restore cursor position
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + before.length, end + before.length);
+      }, 0);
+    },
+    [content]
+  );
 
-  const formatButtons = [
-    { label: "B", title: "Bold", action: () => insertFormatting("<strong>", "</strong>") },
-    { label: "I", title: "Italic", action: () => insertFormatting("<em>", "</em>") },
-    { label: "Code", title: "Code", action: () => insertFormatting("<code>", "</code>") },
-    { label: "H1", title: "Heading 1", action: () => insertFormatting("<h1>", "</h1>") },
-    { label: "H2", title: "Heading 2", action: () => insertFormatting("<h2>", "</h2>") },
-    { label: "P", title: "Paragraph", action: () => insertFormatting("<p>", "</p>") },
-    { label: "List", title: "List Item", action: () => insertFormatting("<li>", "</li>") },
-    { label: "Link", title: "Link", action: () => insertFormatting('<a href="url">', "</a>") },
-  ];
+  const formatButtons = useMemo(
+    () => [
+      { label: "B", title: "Bold", action: () => insertFormatting("<strong>", "</strong>") },
+      { label: "I", title: "Italic", action: () => insertFormatting("<em>", "</em>") },
+      { label: "Code", title: "Code", action: () => insertFormatting("<code>", "</code>") },
+      { label: "H1", title: "Heading 1", action: () => insertFormatting("<h1>", "</h1>") },
+      { label: "H2", title: "Heading 2", action: () => insertFormatting("<h2>", "</h2>") },
+      { label: "P", title: "Paragraph", action: () => insertFormatting("<p>", "</p>") },
+      { label: "List", title: "List Item", action: () => insertFormatting("<li>", "</li>") },
+      { label: "Link", title: "Link", action: () => insertFormatting('<a href="url">', "</a>") },
+    ],
+    [insertFormatting]
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -205,6 +211,7 @@ export default function BlogForm({ onClose, existingPost }: BlogFormProps) {
               Full Content <span className={styles.required}>*</span>
             </label>
             <div className={styles.editorToolbar}>
+              {/* eslint-disable-next-line react-hooks/refs */}
               {formatButtons.map((btn, idx) => (
                 <button
                   key={idx}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronRight, ChevronLeft, Check } from "lucide-react";
 import { useFeatureFlags } from "@/context/FeatureFlagsContext";
@@ -91,6 +91,62 @@ export default function OnboardingTour({ onOpenChatbot }: OnboardingTourProps) {
     );
   }, [flags.features]);
 
+  // Helper functions defined before use
+  const getTarget = useCallback(
+    (stepIndex: number): Element | null => {
+      const step = activeSteps[stepIndex];
+      // Guard against out of bounds or undefined step
+      if (!step) return null;
+
+      try {
+        // Try selector directly
+        let target = document.querySelector(step.target);
+
+        // Fallback for nav if using data attribute fails
+        if (!target && step.target.includes("nav")) {
+          target = document.querySelector("header");
+        }
+
+        return target;
+      } catch (e) {
+        console.warn("Invalid selector:", step.target);
+        return null;
+      }
+    },
+    [activeSteps]
+  );
+
+  const updateRect = useCallback(() => {
+    if (currentStep < 0) return;
+    const target = getTarget(currentStep);
+    if (target) {
+      setRect(target.getBoundingClientRect());
+    }
+  }, [currentStep, getTarget]);
+
+  const handleFinish = useCallback(() => {
+    setIsOpen(false);
+    localStorage.setItem("hasSeenOnboarding", "true");
+  }, []);
+
+  const handleStart = useCallback(() => {
+    setCurrentStep(0);
+  }, []);
+
+  const handleNext = useCallback(() => {
+    if (currentStep < activeSteps.length - 1) {
+      setCurrentStep((prev) => prev + 1);
+    } else {
+      handleFinish();
+    }
+  }, [currentStep, activeSteps.length, handleFinish]);
+
+  const handlePrev = useCallback(() => {
+    if (currentStep > 0) {
+      setCurrentStep((prev) => prev - 1);
+    }
+  }, [currentStep]);
+
   useEffect(() => {
     const hasSeen = localStorage.getItem("hasSeenOnboarding");
     if (!hasSeen) {
@@ -135,10 +191,10 @@ export default function OnboardingTour({ onOpenChatbot }: OnboardingTourProps) {
         // Update rect after a small delay to allow scroll to start/layout to settle
         setTimeout(updateRect, 100);
       } else {
-        handleNext();
+        handleNext(); // eslint-disable-line react-hooks/set-state-in-effect
       }
     }
-  }, [currentStep, onOpenChatbot]);
+  }, [currentStep, activeSteps, onOpenChatbot, getTarget, updateRect, handleNext]);
 
   useEffect(() => {
     if (currentStep >= 0) {
@@ -149,56 +205,7 @@ export default function OnboardingTour({ onOpenChatbot }: OnboardingTourProps) {
         window.removeEventListener("scroll", updateRect);
       };
     }
-  }, [currentStep]);
-
-  const getTarget = (stepIndex: number): Element | null => {
-    const step = activeSteps[stepIndex];
-    try {
-      // Try selector directly
-      let target = document.querySelector(step.target);
-
-      // Fallback for nav if using data attribute fails
-      if (!target && step.target.includes("nav")) {
-        target = document.querySelector("header");
-      }
-
-      return target;
-    } catch (e) {
-      console.warn("Invalid selector:", step.target);
-      return null;
-    }
-  };
-
-  const updateRect = () => {
-    if (currentStep < 0) return;
-    const target = getTarget(currentStep);
-    if (target) {
-      setRect(target.getBoundingClientRect());
-    }
-  };
-
-  const handleStart = () => {
-    setCurrentStep(0);
-  };
-
-  const handleNext = () => {
-    if (currentStep < activeSteps.length - 1) {
-      setCurrentStep((prev) => prev + 1);
-    } else {
-      handleFinish();
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentStep > 0) {
-      setCurrentStep((prev) => prev - 1);
-    }
-  };
-
-  const handleFinish = () => {
-    setIsOpen(false);
-    localStorage.setItem("hasSeenOnboarding", "true");
-  };
+  }, [currentStep, updateRect]);
 
   if (!isOpen) return null;
 

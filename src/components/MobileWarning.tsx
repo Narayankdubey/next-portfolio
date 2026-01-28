@@ -14,7 +14,7 @@ export default function MobileWarning() {
     const isMobile = window.innerWidth < 1024; // Show on screens smaller than lg
 
     if (isMobile && !dismissed) {
-      setIsVisible(true);
+      setIsVisible(true); // eslint-disable-line react-hooks/set-state-in-effect
     }
   }, []);
 

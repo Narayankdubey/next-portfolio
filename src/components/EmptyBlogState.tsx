@@ -15,7 +15,7 @@ export default function EmptyBlogState() {
         </svg>
         <h2 className={styles.title}>No blog posts yet</h2>
         <p className={styles.description}>
-          Check back soon! We'll be posting interesting content and updates here.
+          Check back soon! We&apos;ll be posting interesting content and updates here.
         </p>
         <Link href="/" className={styles.homeLink}>
           Back to Home

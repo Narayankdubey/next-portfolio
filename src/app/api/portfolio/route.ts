@@ -19,7 +19,7 @@ export async function GET() {
     }
 
     // Remove MongoDB-specific fields
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const { __v, _id, ...portfolioData } = portfolio as any;
 
     return NextResponse.json(

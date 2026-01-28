@@ -120,7 +120,6 @@ export default function PortfolioEditor() {
 
       setStatus({ type: "success", message: "Portfolio updated successfully!" });
       setCode(JSON.stringify(dataToSave, null, 2));
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       setStatus({
         type: "error",
@@ -131,10 +130,9 @@ export default function PortfolioEditor() {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateNestedField = (path: string[], value: any) => {
     const newData = { ...data };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     let current: any = newData;
 
     for (let i = 0; i < path.length - 1; i++) {
@@ -203,8 +201,9 @@ export default function PortfolioEditor() {
           <div className="flex bg-gray-800 rounded-lg p-1 border border-gray-700">
             <button
               onClick={() => setEditMode("ui")}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${editMode === "ui" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
-                }`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                editMode === "ui" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
+              }`}
             >
               <FormInput className="w-4 h-4" />
               UI
@@ -214,8 +213,9 @@ export default function PortfolioEditor() {
                 setEditMode("json");
                 setCode(JSON.stringify(data, null, 2));
               }}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${editMode === "json" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
-                }`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                editMode === "json" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
+              }`}
             >
               <Code className="w-4 h-4" />
               JSON
@@ -246,10 +246,11 @@ export default function PortfolioEditor() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`p-4 rounded-lg border flex items-center gap-3 ${status.type === "success"
+          className={`p-4 rounded-lg border flex items-center gap-3 ${
+            status.type === "success"
               ? "bg-green-500/10 border-green-500/20 text-green-400"
               : "bg-red-500/10 border-red-500/20 text-red-400"
-            }`}
+          }`}
         >
           {status.type === "success" ? (
             <CheckCircle className="w-5 h-5" />

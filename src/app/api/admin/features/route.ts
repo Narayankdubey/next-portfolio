@@ -42,7 +42,7 @@ export async function GET() {
     }
 
     // Remove MongoDB-specific fields
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const { __v, _id, createdAt, updatedAt, ...flagsData } = flags as any;
 
     return NextResponse.json({ data: flagsData });

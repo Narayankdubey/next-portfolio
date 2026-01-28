@@ -1,19 +1,61 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { Github, Linkedin, Mail, MapPin, Code2 } from "lucide-react";
+import { motion } from "framer-motion";
+import {
+  Github,
+  Linkedin,
+  Mail,
+  MapPin,
+  // Code2, // Unused now
+  Search,
+  Terminal,
+  Smartphone,
+  Layers,
+  MessageSquare,
+  Music,
+  Palette,
+  FileText,
+  Gamepad2,
+  Sparkles,
+  Settings2,
+} from "lucide-react";
 import Image from "next/image";
+// import Link from "next/link"; // Unused now
 import { usePortfolio } from "@/context/PortfolioContext";
+import { useFeatureFlags } from "@/context/FeatureFlagsContext";
 import GlitchText from "./GlitchText";
 
 interface HeroProps {
   terminalOpen: boolean;
   terminalState: "normal" | "minimized" | "maximized";
   onTerminalClick: () => void;
+  onToggleSearch: () => void;
+  onToggleMobilePreview: () => void;
+  onToggleTechVisualizer: () => void;
+  onToggleChatbot: () => void;
+  onToggleMusic: () => void;
+  onToggleTheme: () => void;
+  onDownloadResume: () => void;
+  onTriggerGame: () => void;
+  onTriggerSurprise: () => void;
+  onToggleSettings?: () => void;
 }
 
-export default function Hero({ terminalOpen, terminalState, onTerminalClick }: HeroProps) {
+export default function Hero({
+  onTerminalClick,
+  onToggleSearch,
+  onToggleMobilePreview,
+  onToggleTechVisualizer,
+  onToggleChatbot,
+  onToggleMusic,
+  onToggleTheme,
+  onDownloadResume,
+  onTriggerGame,
+  onTriggerSurprise,
+  onToggleSettings,
+}: HeroProps) {
   const portfolio = usePortfolio();
+  const flags = useFeatureFlags();
 
   if (!portfolio) return null;
 
@@ -52,16 +94,32 @@ export default function Hero({ terminalOpen, terminalState, onTerminalClick }: H
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="text-2xl md:text-3xl text-gray-300 font-light"
+            className="text-2xl md:text-3xl theme-text font-light"
           >
             {personal.title}
           </motion.h2>
+
+          {/* Open to Work Badge */}
+          {flags.features.openToWork && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 backdrop-blur-sm"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              <span className="text-sm font-medium text-green-400">Open to Work</span>
+            </motion.div>
+          )}
 
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.6 }}
-            className="text-lg text-gray-400 max-w-2xl"
+            className="text-lg theme-text-secondary max-w-2xl"
           >
             {personal.tagline}
           </motion.p>
@@ -73,7 +131,7 @@ export default function Hero({ terminalOpen, terminalState, onTerminalClick }: H
           transition={{ delay: 0.8, duration: 0.6 }}
           className="flex flex-wrap gap-6 items-center"
         >
-          <div className="flex items-center gap-2 text-gray-400">
+          <div className="flex items-center gap-2 theme-text-secondary">
             <MapPin className="w-4 h-4 text-blue-400" />
             <span>{personal.location}</span>
           </div>
@@ -136,114 +194,162 @@ export default function Hero({ terminalOpen, terminalState, onTerminalClick }: H
       </div>
 
       {/* Right side - Animated code snippet (hidden when terminal is open and not minimized) */}
-      <AnimatePresence>
-        {(!terminalOpen || terminalState === "minimized") && (
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 50 }}
-            transition={{ duration: 0.5 }}
-            className="flex justify-center cursor-pointer"
-            onClick={onTerminalClick}
-          >
-            <motion.div
-              className="relative max-w-md md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto w-full"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {/* Glowing background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 blur-3xl" />
+      {/* Right side - Navigation Menu */}
+      {/* Right side - App Launcher */}
+      <motion.div
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5 }}
+        className="hidden lg:flex justify-center w-full"
+      >
+        <div className="w-full max-w-sm">
+          <div className="relative theme-card backdrop-blur-sm border theme-border rounded-2xl p-6 shadow-2xl theme-shadow">
+            <h3 className="text-xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Quick Actions
+            </h3>
 
-              {/* Code container */}
-              <div className="relative theme-terminal-bg backdrop-blur-sm border-2 theme-border hover:border-emerald-500/50 dark:hover:border-emerald-500/50 rounded-2xl p-6 shadow-2xl shadow-emerald-500/10 transition-all duration-300">
-                {/* Header */}
-                <div className="flex items-center gap-2 mb-4 pb-3 border-b theme-border">
-                  <Code2 className="w-5 h-5 text-emerald-400" />
-                  <span className="text-sm font-mono text-emerald-400">developer.ts</span>
-                  <div className="ml-auto flex items-center gap-3">
-                    <span className="text-xs text-emerald-500/70 hover:text-emerald-400 transition-colors">
-                      Click to open terminal
-                    </span>
-                    <div className="flex gap-2">
-                      <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                      <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                      <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                    </div>
-                  </div>
-                </div>
+            <div className="grid grid-cols-4 gap-4">
+              {[
+                {
+                  name: "Search",
+                  icon: Search,
+                  onClick: onToggleSearch,
+                  gradient: "from-blue-500 via-indigo-500 to-purple-500",
+                  enabled: flags.features.searchModal,
+                },
+                {
+                  name: "Terminal",
+                  icon: Terminal,
+                  onClick: onTerminalClick,
+                  gradient: "from-purple-500 via-pink-500 to-red-500",
+                  enabled: flags.features.floatingTerminal,
+                },
+                {
+                  name: "Mobile",
+                  icon: Smartphone,
+                  onClick: onToggleMobilePreview,
+                  gradient: "from-pink-500 via-rose-500 to-orange-500",
+                  enabled: flags.features.mobilePreview,
+                },
+                {
+                  name: "Tech",
+                  icon: Layers,
+                  onClick: onToggleTechVisualizer,
+                  gradient: "from-green-500 via-emerald-500 to-cyan-500",
+                  enabled: flags.features.techVisualizer,
+                },
+                {
+                  name: "Resume",
+                  icon: FileText,
+                  onClick: onDownloadResume,
+                  gradient: "from-yellow-500 via-orange-500 to-red-500",
+                  enabled: true,
+                },
+                {
+                  name: "Arcade",
+                  icon: Gamepad2,
+                  onClick: onTriggerGame,
+                  gradient: "from-red-500 via-pink-500 to-purple-500",
+                  enabled: true,
+                },
+                {
+                  name: "Surprise",
+                  icon: Sparkles,
+                  onClick: onTriggerSurprise,
+                  gradient: "from-indigo-500 via-purple-500 to-pink-500",
+                  enabled: true,
+                },
+                {
+                  name: "Settings",
+                  icon: Settings2,
+                  onClick: onToggleSettings,
+                  gradient: "from-gray-600 via-gray-500 to-gray-400",
+                  enabled: true,
+                },
+                {
+                  name: "Chat AI",
+                  icon: MessageSquare,
+                  onClick: onToggleChatbot,
+                  gradient: "from-blue-600 via-indigo-600 to-purple-600",
+                  enabled: flags.features.chatbot,
+                  highlight: true, // Special styling
+                },
+                {
+                  name: "Music",
+                  icon: Music,
+                  onClick: onToggleMusic,
+                  gradient: "from-green-500 via-emerald-500 to-teal-500",
+                  enabled: flags.features.musicPlayer,
+                },
+                {
+                  name: "Appearance",
+                  icon: Palette,
+                  onClick: onToggleTheme,
+                  gradient: "from-orange-500 via-amber-500 to-yellow-500",
+                  enabled: flags.features.themeCustomizer,
+                },
+              ]
+                .filter((app) => app.enabled)
+                .map((app) => {
+                  const Icon = app.icon;
+                  return (
+                    <motion.button
+                      key={app.name}
+                      onClick={app.onClick}
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`group relative flex flex-col items-center justify-center gap-2 ${
+                        // @ts-expect-error - Custom prop
+                        app.highlight ? "col-span-2" : ""
+                      }`}
+                    >
+                      <div
+                        className={`relative rounded-2xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300 ring-1 ring-white/10 group-hover:ring-white/30 
+                        ${
+                          // @ts-expect-error - Custom prop
+                          app.highlight
+                            ? "w-full h-16 flex items-center justify-center gap-3"
+                            : "w-12 h-12 flex items-center justify-center"
+                        }`}
+                      >
+                        <div
+                          className={`absolute inset-0 bg-gradient-to-br ${app.gradient} opacity-80 group-hover:opacity-100 transition-opacity`}
+                        />
 
-                {/* Code content */}
-                <pre className="font-mono text-sm leading-relaxed theme-text">
-                  <code>
-                    <span className="text-purple-600 dark:text-purple-400">const</span>{" "}
-                    <span className="text-blue-600 dark:text-blue-400">developer</span>{" "}
-                    <span className="theme-text-secondary">=</span>{" "}
-                    <span className="text-yellow-600 dark:text-yellow-400">{"{"}</span>
-                    {"\n"}
-                    {"  "}
-                    <span className="text-cyan-600 dark:text-cyan-400">name</span>
-                    <span className="theme-text-secondary">:</span>{" "}
-                    <span className="text-emerald-600 dark:text-emerald-400">
-                      &quot;{personal.name}&quot;
-                    </span>
-                    <span className="theme-text-secondary">,</span>
-                    {"\n"}
-                    {"  "}
-                    <span className="text-cyan-600 dark:text-cyan-400">role</span>
-                    <span className="theme-text-secondary">:</span>{" "}
-                    <span className="text-emerald-600 dark:text-emerald-400">
-                      &quot;{personal.title}&quot;
-                    </span>
-                    <span className="theme-text-secondary">,</span>
-                    {"\n"}
-                    {"  "}
-                    <span className="text-cyan-600 dark:text-cyan-400">location</span>
-                    <span className="theme-text-secondary">:</span>{" "}
-                    <span className="text-emerald-600 dark:text-emerald-400">
-                      &quot;{personal.location}&quot;
-                    </span>
-                    <span className="theme-text-secondary">,</span>
-                    {"\n\n"}
-                    {"  "}
-                    <span className="text-cyan-600 dark:text-cyan-400">passion</span>
-                    <span className="theme-text-secondary">:</span>{" "}
-                    <span className="text-emerald-600 dark:text-emerald-400">
-                      &quot;Building amazing experiences ✨&quot;
-                    </span>
-                    {"\n"}
-                    <span className="text-yellow-600 dark:text-yellow-400">{"}"}</span>
-                    <span className="theme-text-secondary">;</span>
-                    {"\n\n"}
-                    <span className="text-blue-600 dark:text-blue-400">console</span>
-                    <span className="theme-text-secondary">.</span>
-                    <span className="text-yellow-600 dark:text-yellow-400">log</span>
-                    <span className="theme-text-secondary">(</span>
-                    <span className="text-blue-600 dark:text-blue-400">developer</span>
-                    <span className="theme-text-secondary">.</span>
-                    <span className="text-cyan-600 dark:text-cyan-400">passion</span>
-                    <span className="theme-text-secondary">);</span>
-                  </code>
-                </pre>
+                        {/* Glassy reflection */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
 
-                {/* Output */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1 }}
-                  className="mt-4 pt-3 border-t theme-border"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-500 font-bold">❯</span>
-                    <span className="text-emerald-400 text-sm">
-                      Building amazing experiences ✨
-                    </span>
-                  </div>
-                </motion.div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                        <div className="relative z-10 flex items-center justify-center gap-2">
+                          <Icon
+                            className={`${
+                              // @ts-expect-error - Custom prop
+                              app.highlight ? "w-6 h-6" : "w-6 h-6"
+                            } text-white drop-shadow-md`}
+                          />
+
+                          {/* @ts-expect-error - Custom prop */}
+                          {app.highlight && (
+                            <span className="text-white font-bold text-sm uppercase tracking-wide">
+                              {app.name}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Only show text below for non-highlighted items */}
+                      {/* @ts-expect-error - Custom prop */}
+                      {!app.highlight && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider theme-text-secondary group-hover:text-blue-400 transition-colors">
+                          {app.name}
+                        </span>
+                      )}
+                    </motion.button>
+                  );
+                })}
+            </div>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }

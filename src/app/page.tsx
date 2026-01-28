@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import InteractiveBackground from "@/components/InteractiveBackground";
 import Navbar from "@/components/Navbar";
 import Landing from "@/components/Landing";
 import About from "@/components/About";
+import Skills from "@/components/Skills";
 import ExperienceTimeline from "@/components/ExperienceTimeline";
 import Projects from "@/components/Projects";
 import Contact from "@/components/Contact";
@@ -38,6 +39,7 @@ import FeatureFlagsDebugger from "@/components/FeatureFlagsDebugger";
 import FeatureFlagsSettings from "@/components/FeatureFlagsSettings";
 // Removed static import; data will be fetched from API
 
+import { useResume } from "@/hooks/useResume";
 import { usePortfolio } from "@/context/PortfolioContext";
 
 export default function Home() {
@@ -56,6 +58,7 @@ export default function Home() {
   const { toggleTheme } = useTheme();
   const flags = useFeatureFlags();
   const portfolio = usePortfolio();
+  const { handleDownload } = useResume();
 
   // Global keyboard shortcut for search
   useEffect(() => {
@@ -114,12 +117,13 @@ export default function Home() {
   }, []);
 
   // Open terminal only on desktop
-  useEffect(() => {
+  // Open terminal only on desktop - DISABLED as per user request
+  /* useEffect(() => {
     const isDesktop = window.innerWidth >= 768;
     if (isDesktop) {
       setTerminalOpen(true);
     }
-  }, []);
+  }, []); */
 
   // Track achievements
   useEffect(() => {
@@ -150,6 +154,19 @@ export default function Home() {
   const handleKonamiActivate = () => {
     // @ts-expect-error -- window.trackAchievement is added by external script
     window.trackAchievement?.konamiCode();
+  };
+
+  const handleTriggerGame = () => {
+    showSuccess("Arcade Mode Unlocked! 🎮");
+    // Trigger achievement
+    // @ts-expect-error -- window.trackAchievement is added by external script
+    window.trackAchievement?.unlock("konami_code");
+  };
+
+  const handleTriggerSurprise = () => {
+    showSuccess("✨ A Magical Surprise! ✨");
+    toggleTheme();
+    // In future: Confetti
   };
 
   return (
@@ -202,10 +219,21 @@ export default function Home() {
               terminalOpen={terminalOpen}
               terminalState={terminalState}
               onTerminalClick={handleTerminalClick}
+              onToggleSearch={() => setSearchOpen(true)}
+              onToggleMobilePreview={() => setMobilePreviewOpen(true)}
+              onToggleTechVisualizer={() => setTechVisualizerOpen(true)}
+              onToggleChatbot={() => setChatbotOpen(!chatbotOpen)}
+              onToggleMusic={() => setMusicPlayerOpen(!musicPlayerOpen)}
+              onToggleTheme={handleThemeToggle}
+              onDownloadResume={handleDownload}
+              onTriggerGame={handleTriggerGame}
+              onTriggerSurprise={handleTriggerSurprise}
+              onToggleSettings={() => setFeatureFlagsSettingsOpen(true)}
             />
           </div>
         )}
         {flags.sections.about && <About />}
+        {flags.sections.skills && <Skills />}
         {flags.sections.experience && <ExperienceTimeline />}
         {flags.sections.projects && <Projects />}
         {flags.sections.testimonials && <TestimonialCarousel />}

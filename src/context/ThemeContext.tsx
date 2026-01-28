@@ -28,45 +28,42 @@ const accents: Record<AccentColor, { primary: string; secondary: string }> = {
 };
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("dark");
-  const [accent, setAccent] = useState<AccentColor>("default");
-  const [backgroundMode, setBackgroundMode] = useState<BackgroundMode>("particles");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setTimeout(() => setMounted(true), 0);
-    // Load theme and accent from localStorage
+  // Use lazy initializers to load from localStorage without triggering effects
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === "undefined") return "dark";
     const savedTheme = localStorage.getItem("portfolio-theme") as Theme;
-    const savedAccent = localStorage.getItem("portfolio-accent") as AccentColor;
-    const savedBgMode = localStorage.getItem("portfolio-bg-mode") as BackgroundMode;
+    return savedTheme || "dark";
+  });
 
-    if (savedTheme) setTimeout(() => setTheme(savedTheme), 0);
-    if (savedAccent && accents[savedAccent]) setTimeout(() => setAccent(savedAccent), 0);
-    if (savedBgMode) setTimeout(() => setBackgroundMode(savedBgMode), 0);
-  }, []);
+  const [accent, setAccent] = useState<AccentColor>(() => {
+    if (typeof window === "undefined") return "default";
+    const savedAccent = localStorage.getItem("portfolio-accent") as AccentColor;
+    return savedAccent && accents[savedAccent] ? savedAccent : "default";
+  });
+
+  const [backgroundMode, setBackgroundMode] = useState<BackgroundMode>(() => {
+    if (typeof window === "undefined") return "particles";
+    const savedBgMode = localStorage.getItem("portfolio-bg-mode") as BackgroundMode;
+    return savedBgMode || "particles";
+  });
 
   useEffect(() => {
-    if (!mounted) return;
-
     // Update document class and save to localStorage
     document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(theme);
     localStorage.setItem("portfolio-theme", theme);
-  }, [theme, mounted]);
+  }, [theme]);
 
   useEffect(() => {
-    if (!mounted) return;
-
     const colors = accents[accent];
     document.documentElement.style.setProperty("--accent-primary", colors.primary);
     document.documentElement.style.setProperty("--accent-secondary", colors.secondary);
     localStorage.setItem("portfolio-accent", accent);
-  }, [accent, mounted]);
+  }, [accent]);
 
   useEffect(() => {
-    if (!mounted) return;
     localStorage.setItem("portfolio-bg-mode", backgroundMode);
-  }, [backgroundMode, mounted]);
+  }, [backgroundMode]);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
@@ -76,7 +73,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     <ThemeContext.Provider
       value={{ theme, toggleTheme, accent, setAccent, backgroundMode, setBackgroundMode }}
     >
-      {mounted ? children : <div style={{ visibility: "hidden" }}>{children}</div>}
+      {children}
     </ThemeContext.Provider>
   );
 }

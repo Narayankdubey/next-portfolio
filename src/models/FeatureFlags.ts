@@ -29,6 +29,8 @@ export interface IFeatures {
   mobilePreview: boolean;
   quickActions: boolean;
   blog: boolean;
+  techMarquee: boolean;
+  openToWork: boolean; // Display "Open to Work" badge in Hero
 }
 
 export interface IUserCustomizable {
@@ -82,6 +84,8 @@ const FeaturesSchema = new Schema(
     mobilePreview: { type: Boolean, default: true },
     quickActions: { type: Boolean, default: true },
     blog: { type: Boolean, default: true },
+    techMarquee: { type: Boolean, default: true },
+    openToWork: { type: Boolean, default: true },
   },
   { _id: false }
 );

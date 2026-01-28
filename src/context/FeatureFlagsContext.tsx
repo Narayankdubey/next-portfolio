@@ -30,6 +30,8 @@ const defaultFlags = {
     mobilePreview: true,
     quickActions: true,
     blog: true,
+    techMarquee: true,
+    openToWork: true,
   },
   userCustomizable: {
     sections: [],
@@ -70,6 +72,8 @@ interface FeatureFlags {
     mobilePreview: boolean;
     quickActions: boolean;
     blog: boolean;
+    techMarquee: boolean;
+    openToWork: boolean;
   };
   userCustomizable: {
     sections: string[];

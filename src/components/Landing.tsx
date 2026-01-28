@@ -4,9 +4,33 @@ interface LandingProps {
   terminalOpen: boolean;
   terminalState: "normal" | "minimized" | "maximized";
   onTerminalClick: () => void;
+  onToggleSearch: () => void;
+  onToggleMobilePreview: () => void;
+  onToggleTechVisualizer: () => void;
+  onToggleChatbot: () => void;
+  onToggleMusic: () => void;
+  onToggleTheme: () => void;
+  onDownloadResume: () => void;
+  onTriggerGame: () => void;
+  onTriggerSurprise: () => void;
+  onToggleSettings?: () => void;
 }
 
-export default function Landing({ terminalOpen, terminalState, onTerminalClick }: LandingProps) {
+export default function Landing({
+  terminalOpen,
+  terminalState,
+  onTerminalClick,
+  onToggleSearch,
+  onToggleMobilePreview,
+  onToggleTechVisualizer,
+  onToggleChatbot,
+  onToggleMusic,
+  onToggleTheme,
+  onDownloadResume,
+  onTriggerGame,
+  onTriggerSurprise,
+  onToggleSettings,
+}: LandingProps) {
   return (
     <section
       className="min-h-screen flex items-center md:px-8 py-20 pt-32"
@@ -17,6 +41,16 @@ export default function Landing({ terminalOpen, terminalState, onTerminalClick }
           terminalOpen={terminalOpen}
           terminalState={terminalState}
           onTerminalClick={onTerminalClick}
+          onToggleSearch={onToggleSearch}
+          onToggleMobilePreview={onToggleMobilePreview}
+          onToggleTechVisualizer={onToggleTechVisualizer}
+          onToggleChatbot={onToggleChatbot}
+          onToggleMusic={onToggleMusic}
+          onToggleTheme={onToggleTheme}
+          onDownloadResume={onDownloadResume}
+          onTriggerGame={onTriggerGame}
+          onTriggerSurprise={onTriggerSurprise}
+          onToggleSettings={onToggleSettings}
         />
       </div>
     </section>

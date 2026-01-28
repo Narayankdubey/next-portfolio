@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IVisitorStats extends Document {
   userId: string;
@@ -86,5 +86,7 @@ const VisitorStatsSchema: Schema = new Schema({
   },
 });
 
-export default mongoose.models.VisitorStats ||
-  mongoose.model<IVisitorStats>("VisitorStats", VisitorStatsSchema);
+const VisitorStats: Model<IVisitorStats> =
+  mongoose.models.VisitorStats || mongoose.model<IVisitorStats>("VisitorStats", VisitorStatsSchema);
+
+export default VisitorStats;

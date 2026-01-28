@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IVisitLog extends Document {
   userId: string;
@@ -72,4 +72,7 @@ const VisitLogSchema: Schema = new Schema({
 // Index for querying visits by user and time
 VisitLogSchema.index({ userId: 1, visitTime: -1 });
 
-export default mongoose.models.VisitLog || mongoose.model<IVisitLog>("VisitLog", VisitLogSchema);
+const VisitLog: Model<IVisitLog> =
+  mongoose.models.VisitLog || mongoose.model<IVisitLog>("VisitLog", VisitLogSchema);
+
+export default VisitLog;

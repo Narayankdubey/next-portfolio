@@ -299,14 +299,12 @@ export default function Hero({
                       whileHover={{ scale: 1.05, y: -5 }}
                       whileTap={{ scale: 0.95 }}
                       className={`group relative flex flex-col items-center justify-center gap-2 ${
-                        // @ts-expect-error - Custom prop
                         app.highlight ? "col-span-2" : ""
                       }`}
                     >
                       <div
                         className={`relative rounded-2xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300 ring-1 ring-white/10 group-hover:ring-white/30 
                         ${
-                          // @ts-expect-error - Custom prop
                           app.highlight
                             ? "w-full h-16 flex items-center justify-center gap-3"
                             : "w-12 h-12 flex items-center justify-center"
@@ -322,12 +320,10 @@ export default function Hero({
                         <div className="relative z-10 flex items-center justify-center gap-2">
                           <Icon
                             className={`${
-                              // @ts-expect-error - Custom prop
                               app.highlight ? "w-6 h-6" : "w-6 h-6"
                             } text-white drop-shadow-md`}
                           />
 
-                          {/* @ts-expect-error - Custom prop */}
                           {app.highlight && (
                             <span className="text-white font-bold text-sm uppercase tracking-wide">
                               {app.name}
@@ -337,7 +333,6 @@ export default function Hero({
                       </div>
 
                       {/* Only show text below for non-highlighted items */}
-                      {/* @ts-expect-error - Custom prop */}
                       {!app.highlight && (
                         <span className="text-[10px] font-bold uppercase tracking-wider theme-text-secondary group-hover:text-blue-400 transition-colors">
                           {app.name}

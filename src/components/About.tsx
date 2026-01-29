@@ -6,15 +6,21 @@ import { useFeatureFlags } from "@/context/FeatureFlagsContext";
 import TechMarquee from "./TechMarquee";
 import GithubHeatmap from "./GithubHeatmap";
 import GlitchText from "./GlitchText";
+import { useSectionTracking } from "@/hooks/useAnalytics";
 
 export default function About() {
   const portfolio = usePortfolio();
   const flags = useFeatureFlags();
+  const sectionRef = useSectionTracking("about");
 
   if (!portfolio) return null;
 
   return (
-    <section id="about" className="min-h-screen flex items-center px-4 md:px-8 py-20">
+    <section
+      ref={sectionRef}
+      id="about"
+      className="min-h-screen flex items-center px-4 md:px-8 py-20"
+    >
       <div className="max-w-4xl mx-auto w-full">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

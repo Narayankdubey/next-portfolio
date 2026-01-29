@@ -5,12 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePortfolio } from "@/context/PortfolioContext";
 import GlitchText from "./GlitchText";
 import { getSkillIcon, getSkillColor, getSkillBrandColor } from "@/utils/skillIcons";
+import { useSectionTracking } from "@/hooks/useAnalytics";
 
 type SkillCategory = "All" | "Frontend" | "Backend" | "Tools";
 
 export default function Skills() {
   const portfolio = usePortfolio();
   const [activeTab, setActiveTab] = useState<SkillCategory>("All");
+  const sectionRef = useSectionTracking("skills");
 
   if (!portfolio) return null;
 
@@ -38,7 +40,7 @@ export default function Skills() {
   const currentSkills = getSkillsByCategory(activeTab);
 
   return (
-    <section id="skills" className="py-20 px-4 md:px-8 theme-card">
+    <section ref={sectionRef} id="skills" className="py-20 px-4 md:px-8 theme-card">
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

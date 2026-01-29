@@ -1,4 +1,7 @@
+"use client";
+
 import Hero from "./Hero";
+import { useSectionTracking } from "@/hooks/useAnalytics";
 
 interface LandingProps {
   terminalOpen: boolean;
@@ -31,8 +34,11 @@ export default function Landing({
   onTriggerSurprise,
   onToggleSettings,
 }: LandingProps) {
+  const sectionRef = useSectionTracking("hero");
+
   return (
     <section
+      ref={sectionRef}
       className="min-h-screen flex items-center md:px-8 py-20 pt-32"
       data-tour="hero-terminal"
     >

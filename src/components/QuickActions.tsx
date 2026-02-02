@@ -6,6 +6,7 @@ import { FileText, Github, Linkedin, Mail, Share2, Copy, Check, X } from "lucide
 import { useToast } from "@/context/ToastContext";
 import { useSound } from "@/context/SoundContext";
 import { usePortfolio } from "@/context/PortfolioContext";
+import { useAnalytics } from "@/context/AnalyticsContext";
 
 export default function QuickActions() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,11 +14,13 @@ export default function QuickActions() {
   const { showSuccess } = useToast();
   const { playHover, playClick, playSuccess } = useSound();
   const portfolio = usePortfolio();
+  const { trackAction } = useAnalytics();
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     showSuccess("Link copied to clipboard!");
+    trackAction("click", "floating-share-copy");
     playSuccess();
     setTimeout(() => setCopied(false), 2000);
   };
@@ -69,6 +72,7 @@ export default function QuickActions() {
                 onClick={() => {
                   action.onClick();
                   playClick();
+                  trackAction("click", "floating-share-action", { label: action.label });
                 }}
                 onMouseEnter={playHover}
                 className={`flex items-center gap-3 p-3 rounded-full shadow-lg text-white ${action.color} hover:brightness-110 transition-all group cursor-pointer`}
@@ -106,6 +110,7 @@ export default function QuickActions() {
         onClick={() => {
           setIsOpen(!isOpen);
           playClick();
+          trackAction("click", "floating-share-toggle", { state: !isOpen ? "open" : "close" });
         }}
         onMouseEnter={playHover}
         className={`p-4 rounded-full shadow-2xl text-white transition-colors cursor-pointer ${

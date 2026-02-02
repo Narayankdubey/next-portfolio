@@ -41,6 +41,7 @@ import FeatureFlagsSettings from "@/components/FeatureFlagsSettings";
 
 import { useResume } from "@/hooks/useResume";
 import { usePortfolio } from "@/context/PortfolioContext";
+import { useAnalytics } from "@/context/AnalyticsContext";
 
 export default function Home() {
   const [terminalOpen, setTerminalOpen] = useState(false);
@@ -59,6 +60,7 @@ export default function Home() {
   const flags = useFeatureFlags();
   const portfolio = usePortfolio();
   const { handleDownload } = useResume();
+  const { trackAction } = useAnalytics();
 
   // Global keyboard shortcut for search
   useEffect(() => {
@@ -255,6 +257,7 @@ export default function Home() {
                 href={portfolio?.social?.github || "#"}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackAction("click", "footer-social", { platform: "github" })}
                 className="p-2 rounded-full bg-gray-800 hover:bg-gray-700 text-white transition-colors"
                 aria-label="GitHub"
               >
@@ -264,6 +267,7 @@ export default function Home() {
                 href={portfolio?.social?.linkedin || "#"}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackAction("click", "footer-social", { platform: "linkedin" })}
                 className="p-2 rounded-full bg-blue-600 hover:bg-blue-500 text-white transition-colors"
                 aria-label="LinkedIn"
               >
@@ -271,6 +275,7 @@ export default function Home() {
               </a>
               <a
                 href={`mailto:${portfolio?.social?.email || ""}`}
+                onClick={() => trackAction("click", "footer-social", { platform: "email" })}
                 className="p-2 rounded-full bg-red-500 hover:bg-red-400 text-white transition-colors"
                 aria-label="Email"
               >

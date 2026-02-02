@@ -3,24 +3,30 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, X } from "lucide-react";
+import { useAnalytics } from "@/context/AnalyticsContext";
 
 export default function WelcomeModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { trackAction } = useAnalytics();
 
   useEffect(() => {
     // Check if user has already been welcomed
     const hasSeenWelcome = localStorage.getItem("hasSeenWelcome");
     if (!hasSeenWelcome) {
       // Show modal after a short delay
-      setTimeout(() => setIsOpen(true), 1000);
+      setTimeout(() => {
+        setIsOpen(true);
+        trackAction("view", "welcome-modal");
+      }, 1000);
     }
-  }, []);
+  }, [trackAction]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    trackAction("click", "welcome-continue", { inputValue: name });
 
     try {
       const userId = localStorage.getItem("chatUserId");
@@ -51,6 +57,7 @@ export default function WelcomeModal() {
   };
 
   const handleSkip = () => {
+    trackAction("click", "welcome-skip", { inputValue: name });
     localStorage.setItem("hasSeenWelcome", "true");
     setIsOpen(false);
   };
@@ -107,6 +114,11 @@ export default function WelcomeModal() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  onBlur={() => {
+                    if (name.trim()) {
+                      trackAction("blur", "welcome-name-input", { value: name });
+                    }
+                  }}
                   placeholder="Enter your name..."
                   maxLength={50}
                   className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400"

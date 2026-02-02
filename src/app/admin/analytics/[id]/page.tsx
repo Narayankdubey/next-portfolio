@@ -1,9 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { ArrowLeft, Clock, MapPin, Monitor, Eye, Activity } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ArrowLeft,
+  Clock,
+  MapPin,
+  Monitor,
+  Eye,
+  Activity,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  RefreshCw,
+} from "lucide-react";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 
 interface SectionImpression {
@@ -14,7 +25,15 @@ interface SectionImpression {
   interactions: number;
 }
 
+interface Action {
+  type: string;
+  target: string;
+  timestamp: string;
+  metadata?: Record<string, any>;
+}
+
 interface Journey {
+  _id: string;
   sessionId: string;
   visitorId: string;
   landingPage: string;
@@ -28,11 +47,13 @@ interface Journey {
   location?: {
     country?: string;
     city?: string;
+    ip?: string;
   };
   startTime: string;
   endTime?: string;
   totalDuration?: number;
   events: SectionImpression[];
+  actions: Action[];
 }
 
 const sectionColors: Record<string, string> = {
@@ -46,30 +67,42 @@ const sectionColors: Record<string, string> = {
   blog: "bg-orange-500",
 };
 
-export default function JourneyDetailPage({ params }: { params: { id: string } }) {
-  const [journey, setJourney] = useState<Journey | null>(null);
+export default function JourneyDetailPage() {
+  const params = useParams();
+  const id = params?.id as string;
+  const [journeys, setJourneys] = useState<Journey[]>([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const [refreshing, setRefreshing] = useState(false);
+  const [expandedSession, setExpandedSession] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchJourney();
-  }, [params.id]);
+    if (!id) return;
+    fetchJourneys();
+  }, [id]);
 
-  const fetchJourney = async () => {
+  const fetchJourneys = async () => {
     try {
-      const response = await fetch(`/api/admin/analytics/journey/${params.id}`);
+      setRefreshing(true);
+      const response = await fetch(`/api/admin/analytics/journey/${id}`);
       if (!response.ok) throw new Error("Failed to fetch");
 
       const data = await response.json();
-      setJourney(data.journey);
+      setJourneys(data.journeys);
+      // Auto-expand the most recent session
+      if (data.journeys && data.journeys.length > 0) {
+        setExpandedSession(data.journeys[0].sessionId);
+      }
     } catch (error) {
       console.error("Error:", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const formatDuration = (ms: number) => {
+  const formatDuration = (ms?: number) => {
+    if (ms === undefined || ms === null) return "N/A";
+    if (ms < 1000) return "< 1s";
     const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
     if (minutes > 0) {
@@ -81,163 +114,244 @@ export default function JourneyDetailPage({ params }: { params: { id: string } }
   if (loading) {
     return (
       <div className="min-h-screen theme-bg flex items-center justify-center">
-        <div className="theme-text">Loading...</div>
+        <div className="theme-text">Loading visitor history...</div>
       </div>
     );
   }
 
-  if (!journey) {
+  if (!journeys || journeys.length === 0) {
     return (
       <div className="min-h-screen theme-bg flex items-center justify-center">
-        <div className="theme-text">Journey not found</div>
+        <div className="theme-text">Visitor not found or no sessions recorded.</div>
       </div>
     );
   }
+
+  const latestJourney = journeys[0];
 
   return (
     <div className="min-h-screen theme-bg p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/admin/analytics"
-            className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Analytics
-          </Link>
-          <h1 className="text-4xl font-bold theme-text mb-2">User Journey Details</h1>
-          <p className="theme-text-secondary font-mono text-sm">{journey.sessionId}</p>
-        </div>
-
-        {/* Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="theme-card p-4 rounded-xl border theme-border">
-            <div className="flex items-center gap-3">
-              <MapPin className="w-6 h-6 text-blue-400" />
-              <div>
-                <p className="text-xs theme-text-secondary">Landing Page</p>
-                <p className="theme-text font-medium">{journey.landingPage}</p>
-              </div>
-            </div>
+          <div className="flex items-center justify-between mb-4">
+            <Link
+              href="/admin/stats"
+              className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Analytics
+            </Link>
+            <button
+              onClick={fetchJourneys}
+              disabled={refreshing}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+            >
+              <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+              {refreshing ? "Refreshing..." : "Refresh"}
+            </button>
           </div>
-
-          <div className="theme-card p-4 rounded-xl border theme-border">
-            <div className="flex items-center gap-3">
-              <Monitor className="w-6 h-6 text-purple-400" />
-              <div>
-                <p className="text-xs theme-text-secondary">Device</p>
-                <p className="theme-text font-medium">
-                  {journey.device.type} / {journey.device.browser}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="theme-card p-4 rounded-xl border theme-border">
-            <div className="flex items-center gap-3">
-              <Clock className="w-6 h-6 text-green-400" />
-              <div>
-                <p className="text-xs theme-text-secondary">Duration</p>
-                <p className="theme-text font-medium">
-                  {journey.totalDuration ? formatDuration(journey.totalDuration) : "N/A"}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="theme-card p-4 rounded-xl border theme-border">
-            <div className="flex items-center gap-3">
-              <Eye className="w-6 h-6 text-yellow-400" />
-              <div>
-                <p className="text-xs theme-text-secondary">Sections Viewed</p>
-                <p className="theme-text font-medium">{journey.events.length}</p>
-              </div>
-            </div>
+          <h1 className="text-3xl font-bold theme-text mb-2">Visitor Details</h1>
+          <div className="flex items-center gap-4 text-sm theme-text-secondary font-mono">
+            <span>ID: {latestJourney.visitorId}</span>
+            <span>•</span>
+            <span>{journeys.length} Sessions</span>
+            <span>•</span>
+            <span>
+              First Seen: {new Date(journeys[journeys.length - 1].startTime).toLocaleDateString()}
+            </span>
           </div>
         </div>
 
-        {/* Journey Timeline */}
-        <div className="theme-card p-6 rounded-xl border theme-border">
-          <h2 className="text-2xl font-bold theme-text mb-6 flex items-center gap-2">
-            <Activity className="w-6 h-6" />
-            Journey Timeline
-          </h2>
-
-          <div className="space-y-4">
-            {journey.events.map((event, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="flex items-start gap-4"
+        {/* Sessions List */}
+        <div className="space-y-6">
+          {journeys.map((journey) => (
+            <div
+              key={journey.sessionId}
+              className="theme-card rounded-xl border theme-border overflow-hidden"
+            >
+              {/* Session Header */}
+              <div
+                className="p-4 bg-gray-800/50 flex items-center justify-between cursor-pointer hover:bg-gray-800 transition-colors"
+                onClick={() =>
+                  setExpandedSession(
+                    expandedSession === journey.sessionId ? null : journey.sessionId
+                  )
+                }
               >
-                {/* Timeline dot */}
-                <div className="flex flex-col items-center">
-                  <div
-                    className={`w-4 h-4 rounded-full ${
-                      sectionColors[event.sectionId] || "bg-gray-500"
-                    }`}
-                  />
-                  {index < journey.events.length - 1 && (
-                    <div className="w-0.5 h-full bg-gray-700 mt-2" />
-                  )}
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-blue-400" />
+                    <span className="theme-text font-medium">
+                      {new Date(journey.startTime).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Monitor className="w-4 h-4 text-purple-400" />
+                    <span className="theme-text-secondary text-sm">
+                      {journey.device.type} ({journey.device.browser})
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-green-400" />
+                    <span className="theme-text-secondary text-sm">
+                      {formatDuration(journey.totalDuration)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="theme-text-secondary text-sm px-2 py-0.5 bg-gray-700 rounded">
+                      {journey.events.length} interactions
+                    </span>
+                  </div>
                 </div>
+                {expandedSession === journey.sessionId ? (
+                  <ChevronUp className="w-5 h-5 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-400" />
+                )}
+              </div>
 
-                {/* Event card */}
-                <div className="flex-1 theme-card border theme-border rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-bold theme-text capitalize">{event.sectionId} Section</h3>
-                      <p className="text-sm theme-text-secondary">
-                        {new Date(event.viewedAt).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm theme-text">{formatDuration(event.duration)}</div>
-                      <div className="text-xs theme-text-secondary">
-                        {event.scrollDepth}% scrolled
+              {/* Expanded Details */}
+              <AnimatePresence>
+                {expandedSession === journey.sessionId && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div className="p-6 border-t theme-border bg-gray-900/20">
+                      {/* Info Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div className="theme-card p-3 rounded-lg border theme-border">
+                          <p className="text-xs theme-text-secondary mb-1">Landing Page</p>
+                          <p className="theme-text text-sm truncate" title={journey.landingPage}>
+                            {journey.landingPage}
+                          </p>
+                        </div>
+                        <div className="theme-card p-3 rounded-lg border theme-border">
+                          <p className="text-xs theme-text-secondary mb-1">Referrer</p>
+                          <p className="theme-text text-sm truncate" title={journey.referrer}>
+                            {journey.referrer || "Direct"}
+                          </p>
+                        </div>
+                        <div className="theme-card p-3 rounded-lg border theme-border">
+                          <p className="text-xs theme-text-secondary mb-1">Location (IP)</p>
+                          <p className="theme-text text-sm">{journey.location?.ip || "Unknown"}</p>
+                        </div>
+                      </div>
+
+                      {/* Timeline */}
+                      <div>
+                        <h3 className="text-sm font-bold theme-text mb-4 flex items-center gap-2">
+                          <Activity className="w-4 h-4" /> Activity Timeline
+                        </h3>
+                        <div className="space-y-4 relative pl-2">
+                          {/* Vertical Line */}
+                          <div className="absolute left-[19px] top-2 bottom-4 w-0.5 bg-gray-800" />
+
+                          {(() => {
+                            // Merge events and actions
+                            const combinedEvents = [
+                              ...(journey.events || []).map((e) => ({
+                                type: "view",
+                                data: e,
+                                time: new Date(e.viewedAt).getTime(),
+                              })),
+                              ...(journey.actions || []).map((a) => ({
+                                type: "action",
+                                data: a,
+                                time: new Date(a.timestamp).getTime(),
+                              })),
+                            ].sort((a, b) => a.time - b.time);
+
+                            return combinedEvents.map((item, index) => {
+                              if (item.type === "view") {
+                                const event = item.data as SectionImpression;
+                                return (
+                                  <div
+                                    key={`view-${index}`}
+                                    className="relative flex items-start gap-4"
+                                  >
+                                    <div
+                                      className={`z-10 w-4 h-4 mt-1 rounded-full border-2 border-gray-900 ${sectionColors[event.sectionId] || "bg-gray-500"}`}
+                                    />
+                                    <div className="flex-1 theme-card p-3 rounded-lg border theme-border bg-gray-800/40">
+                                      <div className="flex justify-between items-start">
+                                        <div>
+                                          <p className="theme-text font-medium text-sm capitalize">
+                                            {event.sectionId} Section
+                                          </p>
+                                          <p className="theme-text-secondary text-xs">
+                                            Viewed at{" "}
+                                            {new Date(event.viewedAt).toLocaleTimeString()}
+                                          </p>
+                                        </div>
+                                        <div className="text-right">
+                                          <p className="theme-text text-sm">
+                                            {formatDuration(event.duration)}
+                                          </p>
+                                          <p className="theme-text-secondary text-xs">
+                                            {event.scrollDepth}% scroll
+                                          </p>
+                                        </div>
+                                      </div>
+                                      {/* Scroll Bar */}
+                                      <div className="mt-2 h-1.5 bg-gray-700/50 rounded-full overflow-hidden w-full max-w-[100px] ml-auto">
+                                        <div
+                                          className={`h-full ${sectionColors[event.sectionId] || "bg-gray-500"}`}
+                                          style={{ width: `${event.scrollDepth}%` }}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              } else {
+                                const action = item.data as Action;
+                                return (
+                                  <div
+                                    key={`action-${index}`}
+                                    className="relative flex items-start gap-4"
+                                  >
+                                    <div className="z-10 w-4 h-4 mt-1 rounded-full border-2 border-gray-900 bg-white flex items-center justify-center">
+                                      <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                                    </div>
+                                    <div className="flex-1 theme-card p-3 rounded-lg border theme-border bg-blue-900/10">
+                                      <div className="flex justify-between items-start">
+                                        <div className="w-full">
+                                          <p className="theme-text font-medium text-sm text-blue-300 capitalize">
+                                            {action.type === "click" ? "Clicked" : action.type}{" "}
+                                            {action.metadata?.label || action.target}
+                                          </p>
+                                          <p className="theme-text-secondary text-xs mb-1">
+                                            At {new Date(action.timestamp).toLocaleTimeString()}
+                                          </p>
+
+                                          {/* Render Metadata if present */}
+                                          {action.metadata &&
+                                            Object.keys(action.metadata).length > 0 && (
+                                              <div className="mt-2 text-xs bg-gray-900/50 p-2 rounded border border-gray-700 font-mono text-gray-300 overflow-x-auto">
+                                                <pre>
+                                                  {JSON.stringify(action.metadata, null, 2)}
+                                                </pre>
+                                              </div>
+                                            )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                            });
+                          })()}
+                        </div>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Progress bar for scroll depth */}
-                  <div className="mt-3 bg-gray-800 rounded-full h-2 overflow-hidden">
-                    <div
-                      className={`h-full ${sectionColors[event.sectionId] || "bg-gray-500"}`}
-                      style={{ width: `${event.scrollDepth}%` }}
-                    />
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* Additional Info */}
-        <div className="mt-6 theme-card p-6 rounded-xl border theme-border">
-          <h3 className="text-xl font-bold theme-text mb-4">Session Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm theme-text-secondary">Visitor ID</p>
-              <p className="theme-text font-mono text-sm">{journey.visitorId}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-            <div>
-              <p className="text-sm theme-text-secondary">Referrer</p>
-              <p className="theme-text text-sm">{journey.referrer || "Direct"}</p>
-            </div>
-            <div>
-              <p className="text-sm theme-text-secondary">Started At</p>
-              <p className="theme-text text-sm">{new Date(journey.startTime).toLocaleString()}</p>
-            </div>
-            {journey.endTime && (
-              <div>
-                <p className="text-sm theme-text-secondary">Ended At</p>
-                <p className="theme-text text-sm">{new Date(journey.endTime).toLocaleString()}</p>
-              </div>
-            )}
-          </div>
+          ))}
         </div>
       </div>
     </div>

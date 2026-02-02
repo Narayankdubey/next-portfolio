@@ -16,7 +16,6 @@ import {
   Menu,
   X,
   LogOut,
-  Activity,
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -72,7 +71,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/blog", label: "Blog", icon: BookOpen },
     { href: "/admin/comments", label: "Comments", icon: MessageCircle },
     { href: "/admin/stats", label: "Visitor Stats", icon: BarChart3 },
-    { href: "/admin/analytics", label: "User Journeys", icon: Activity },
     { href: "/admin/messages", label: "Messages", icon: MessageSquare },
     { href: "/admin/chat", label: "Chat History", icon: History },
   ];

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Palette, X, Check } from "lucide-react";
 import { useTheme, AccentColor } from "@/context/ThemeContext";
+import { useAnalytics } from "@/context/AnalyticsContext";
 
 const colors: { id: AccentColor; name: string; color: string }[] = [
   { id: "default", name: "Royal Blue", color: "#2563eb" },
@@ -21,6 +22,7 @@ interface ThemeCustomizerProps {
 
 export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
   const { accent, setAccent, backgroundMode, setBackgroundMode } = useTheme();
+  const { trackAction } = useAnalytics();
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -42,7 +44,13 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={onClose}
+              onClick={() => {
+                trackAction("click", "modal-close", {
+                  modalId: "theme-customizer",
+                  title: "Theme Customizer",
+                });
+                onClose();
+              }}
               className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm"
             />
 
@@ -64,7 +72,13 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
                   System Appearance
                 </h3>
                 <button
-                  onClick={onClose}
+                  onClick={() => {
+                    trackAction("click", "modal-close", {
+                      modalId: "theme-customizer",
+                      title: "Theme Customizer",
+                    });
+                    onClose();
+                  }}
                   className="p-1 hover:bg-white/10 rounded-full transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4 theme-text-secondary" />
@@ -80,7 +94,13 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
                     {colors.map((c) => (
                       <button
                         key={c.id}
-                        onClick={() => setAccent(c.id)}
+                        onClick={() => {
+                          setAccent(c.id);
+                          trackAction("change", "theme-customizer", {
+                            setting: "accent",
+                            value: c.id,
+                          });
+                        }}
                         className={`relative h-10 rounded-lg transition-all hover:scale-105 cursor-pointer border-2 ${
                           accent === c.id
                             ? "border-[var(--accent-primary)]"
@@ -117,7 +137,13 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
-                      onClick={() => setBackgroundMode("particles")}
+                      onClick={() => {
+                        setBackgroundMode("particles");
+                        trackAction("change", "theme-customizer", {
+                          setting: "background",
+                          value: "particles",
+                        });
+                      }}
                       className={`px-3 py-2 rounded-lg text-xs font-medium transition-all border ${
                         backgroundMode === "particles"
                           ? "bg-[var(--accent-primary)] text-white border-[var(--accent-primary)]"
@@ -127,7 +153,13 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
                       Particles
                     </button>
                     <button
-                      onClick={() => setBackgroundMode("matrix")}
+                      onClick={() => {
+                        setBackgroundMode("matrix");
+                        trackAction("change", "theme-customizer", {
+                          setting: "background",
+                          value: "matrix",
+                        });
+                      }}
                       className={`px-3 py-2 rounded-lg text-xs font-medium transition-all border ${
                         backgroundMode === "matrix"
                           ? "bg-[var(--accent-primary)] text-white border-[var(--accent-primary)]"

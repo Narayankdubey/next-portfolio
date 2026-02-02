@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Send, X, Bot, User } from "lucide-react";
 import { useSound } from "@/context/SoundContext";
+import { useAnalytics } from "@/context/AnalyticsContext";
 
 type Message = {
   id: string;
@@ -38,6 +39,7 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { playClick, playTyping, playSuccess } = useSound();
+    const { trackAction } = useAnalytics();
 
     // Initialize user ID and load chat history
     useEffect(() => {
@@ -65,7 +67,7 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
         const data = await response.json();
 
         // Convert to message format
-         
+
         const historyMessages: Message[] = data.messages.flatMap((m: any) => [
           {
             id: `${m.timestamp}-user`,
@@ -110,6 +112,7 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
       if (!messageText.trim() || !userId) return;
 
       playClick();
+      trackAction("send", "chatbot-message", { message: messageText, length: messageText.length });
       const userMsg: Message = {
         id: Date.now().toString(),
         text: messageText,
@@ -195,6 +198,7 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
           {onClose && (
             <button
               onClick={() => {
+                trackAction("click", "modal-close", { modalId: "chatbot", title: "AI Assistant" });
                 onClose();
                 playClick();
               }}
@@ -270,6 +274,11 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
               onChange={(e) => {
                 setInput(e.target.value);
                 playTyping();
+              }}
+              onBlur={() => {
+                if (input.trim()) {
+                  trackAction("input", "chatbot-message", { message: input, length: input.length });
+                }
               }}
               placeholder="Ask something..."
               className="flex-1 px-4 py-2 rounded-full theme-input-bg border theme-border focus:border-blue-500 outline-none theme-text text-sm"

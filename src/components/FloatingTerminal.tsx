@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Terminal as TerminalIcon, X, Minus, Square, Maximize2 } from "lucide-react";
 import { useMinimizedWindows } from "@/context/MinimizedWindowsContext";
 import { usePortfolio } from "@/context/PortfolioContext";
+import { useAnalytics } from "@/context/AnalyticsContext";
 
 type CommandHistory = {
   command: string;
@@ -25,6 +26,7 @@ export default function FloatingTerminal({
   terminalState = "normal",
 }: FloatingTerminalProps) {
   const portfolio = usePortfolio();
+  const { trackAction } = useAnalytics();
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<CommandHistory[]>([
     {
@@ -46,9 +48,15 @@ export default function FloatingTerminal({
   const handleMinimize = () => {
     if (state === "minimized") {
       setState("normal");
+      trackAction("click", "modal-restore", {
+        modalId: "terminal",
+        title: "Terminal",
+        from: "minimized",
+      });
       removeWindow("terminal");
     } else {
       setState("minimized");
+      trackAction("click", "modal-minimize", { modalId: "terminal", title: "Terminal" });
       addWindow({
         id: "terminal",
         title: "Terminal",
@@ -58,7 +66,13 @@ export default function FloatingTerminal({
   };
 
   const handleMaximize = () => {
-    setState(state === "maximized" ? "normal" : "maximized");
+    const newState = state === "maximized" ? "normal" : "maximized";
+    setState(newState);
+    trackAction("click", newState === "maximized" ? "modal-maximize" : "modal-restore", {
+      modalId: "terminal",
+      title: "Terminal",
+      from: state,
+    });
   };
 
   useEffect(() => {
@@ -183,6 +197,7 @@ export default function FloatingTerminal({
 
   const handleCommand = (cmd: string) => {
     const trimmedCmd = cmd.trim().toLowerCase();
+    trackAction("command", "terminal-command", { command: trimmedCmd });
     let output = "";
 
     if (!portfolio) {
@@ -234,6 +249,7 @@ export default function FloatingTerminal({
 
   const handleClose = () => {
     removeWindow("terminal"); // Ensure it's removed from minimized list when closed
+    trackAction("click", "modal-close", { modalId: "terminal", title: "Terminal" });
     onClose();
   };
 

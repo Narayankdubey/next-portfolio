@@ -13,6 +13,7 @@ import {
   Settings2,
 } from "lucide-react";
 import { useFeatureFlags } from "@/context/FeatureFlagsContext";
+import { useAnalytics } from "@/context/AnalyticsContext";
 
 interface AppBarProps {
   onToggleSearch: () => void;
@@ -36,6 +37,7 @@ export default function AppBar({
   onToggleSettings,
 }: AppBarProps) {
   const flags = useFeatureFlags();
+  const { trackAction } = useAnalytics();
 
   const apps = [
     {
@@ -172,7 +174,11 @@ export default function AppBar({
                         : {}
                     }
                     whileTap={{ scale: 0.95 }}
-                    onClick={app.onClick}
+                    onMouseEnter={() => trackAction("hover", "appbar-item", { label: app.name })}
+                    onClick={() => {
+                      trackAction("click", "appbar-item", { label: app.name });
+                      app.onClick();
+                    }}
                     className={`relative w-10 h-10 rounded-xl transition-all overflow-hidden cursor-pointer ${
                       app.isActive ? "ring-2 ring-white/50 shadow-lg" : ""
                     }`}

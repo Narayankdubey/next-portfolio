@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
 import dbConnect from "@/lib/mongodb";
-import VisitorStats from "@/models/VisitorStats";
-import VisitLog from "@/models/VisitLog";
+import UserJourney from "@/models/UserJourney";
 import Contact from "@/models/Contact";
 import ChatMessage from "@/models/ChatMessage";
 import { cookies } from "next/headers";
@@ -30,9 +30,10 @@ export async function GET() {
   try {
     await dbConnect();
 
-    // Get total counts
-    const totalVisits = await VisitLog.countDocuments();
-    const uniqueVisitors = await VisitorStats.countDocuments();
+    // Get total counts from UserJourney
+    const totalVisits = await UserJourney.countDocuments();
+    const uniqueVisitorsList = await UserJourney.distinct("visitorId");
+    const uniqueVisitors = uniqueVisitorsList.length;
     const totalMessages = await Contact.countDocuments();
 
     // Get total chat sessions (unique users who have chatted)
@@ -43,15 +44,15 @@ export async function GET() {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const visitsByDay = await VisitLog.aggregate([
+    const visitsByDay = await UserJourney.aggregate([
       {
         $match: {
-          visitTime: { $gte: sevenDaysAgo },
+          startTime: { $gte: sevenDaysAgo },
         },
       },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$visitTime" } },
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$startTime" } },
           count: { $sum: 1 },
         },
       },
@@ -59,10 +60,10 @@ export async function GET() {
     ]);
 
     // Get browser stats
-    const browserStats = await VisitLog.aggregate([
+    const browserStats = await UserJourney.aggregate([
       {
         $group: {
-          _id: "$browser",
+          _id: "$device.browser",
           count: { $sum: 1 },
         },
       },
@@ -71,10 +72,10 @@ export async function GET() {
     ]);
 
     // Get OS stats
-    const osStats = await VisitLog.aggregate([
+    const osStats = await UserJourney.aggregate([
       {
         $group: {
-          _id: "$os",
+          _id: "$device.os",
           count: { $sum: 1 },
         },
       },

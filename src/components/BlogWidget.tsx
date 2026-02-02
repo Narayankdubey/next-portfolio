@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ArrowRight, BookOpen } from "lucide-react";
 import { BlogWidgetSkeleton } from "./SkeletonLoader";
 import styles from "./BlogWidget.module.css";
+import { useSectionTracking } from "@/hooks/useAnalytics";
 
 interface BlogSummary {
   id: string;
@@ -20,6 +21,7 @@ interface BlogSummary {
 export default function BlogWidget() {
   const [blogs, setBlogs] = useState<BlogSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const blogRef = useSectionTracking("blog");
 
   useEffect(() => {
     async function fetchBlogs() {
@@ -56,7 +58,7 @@ export default function BlogWidget() {
   }
 
   return (
-    <section className={styles.widget} data-tour="blog-widget">
+    <section id="blog" ref={blogRef} className={styles.widget} data-tour="blog-widget">
       <div className={styles.header}>
         <div className={styles.titleRow}>
           <BookOpen className={styles.titleIcon} />

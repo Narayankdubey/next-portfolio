@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Settings2, X, RotateCcw, Check } from "lucide-react";
 import { useFeatureFlags, useFeatureFlagsActions } from "@/context/FeatureFlagsContext";
 import { useToast } from "@/context/ToastContext";
+import { useAnalytics } from "@/context/AnalyticsContext";
 
 interface FeatureFlagsSettingsProps {
   isOpen: boolean;
@@ -16,9 +17,11 @@ export default function FeatureFlagsSettings({ isOpen, onClose }: FeatureFlagsSe
   const { toggleFeature, toggleSection, resetToDefaults } = useFeatureFlagsActions();
   const { showSuccess } = useToast();
   const [activeTab, setActiveTab] = useState<"sections" | "features">("sections");
+  const { trackAction } = useAnalytics();
 
   const handleReset = () => {
     resetToDefaults();
+    trackAction("click", "settings-reset");
     showSuccess("Settings reset to defaults");
   };
 
@@ -84,7 +87,13 @@ export default function FeatureFlagsSettings({ isOpen, onClose }: FeatureFlagsSe
                 </div>
               </div>
               <button
-                onClick={onClose}
+                onClick={() => {
+                  trackAction("click", "modal-close", {
+                    modalId: "settings",
+                    title: "Customize Experience",
+                  });
+                  onClose();
+                }}
                 className="p-2 hover:bg-[var(--accent-primary)]/10 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 theme-text" />
@@ -94,7 +103,10 @@ export default function FeatureFlagsSettings({ isOpen, onClose }: FeatureFlagsSe
             {/* Tabs */}
             <div className="flex border-b theme-border bg-[var(--accent-primary)]/5">
               <button
-                onClick={() => setActiveTab("sections")}
+                onClick={() => {
+                  setActiveTab("sections");
+                  trackAction("click", "settings-tab", { tab: "sections" });
+                }}
                 className={`flex-1 px-6 py-3 font-medium transition-colors relative ${
                   activeTab === "sections"
                     ? "text-[var(--accent-primary)]"
@@ -110,7 +122,10 @@ export default function FeatureFlagsSettings({ isOpen, onClose }: FeatureFlagsSe
                 )}
               </button>
               <button
-                onClick={() => setActiveTab("features")}
+                onClick={() => {
+                  setActiveTab("features");
+                  trackAction("click", "settings-tab", { tab: "features" });
+                }}
                 className={`flex-1 px-6 py-3 font-medium transition-colors relative ${
                   activeTab === "features"
                     ? "text-[var(--accent-primary)]"
@@ -146,7 +161,13 @@ export default function FeatureFlagsSettings({ isOpen, onClose }: FeatureFlagsSe
                           <input
                             type="checkbox"
                             checked={value}
-                            onChange={() => toggleSection(key as keyof typeof flags.sections)}
+                            onChange={() => {
+                              toggleSection(key as keyof typeof flags.sections);
+                              trackAction("toggle", "settings-flag", {
+                                flag: `section-${key}`,
+                                value: !value,
+                              });
+                            }}
                             className="sr-only"
                           />
                           <div
@@ -184,7 +205,13 @@ export default function FeatureFlagsSettings({ isOpen, onClose }: FeatureFlagsSe
                           <input
                             type="checkbox"
                             checked={value}
-                            onChange={() => toggleFeature(key as keyof typeof flags.features)}
+                            onChange={() => {
+                              toggleFeature(key as keyof typeof flags.features);
+                              trackAction("toggle", "settings-flag", {
+                                flag: `feature-${key}`,
+                                value: !value,
+                              });
+                            }}
                             className="sr-only"
                           />
                           <div
@@ -221,7 +248,10 @@ export default function FeatureFlagsSettings({ isOpen, onClose }: FeatureFlagsSe
                 Reset to Defaults
               </button>
               <button
-                onClick={onClose}
+                onClick={() => {
+                  trackAction("click", "settings-done");
+                  onClose();
+                }}
                 className="px-6 py-2 bg-[var(--accent-primary)] text-white font-medium rounded-lg hover:opacity-90 transition-opacity"
               >
                 Done

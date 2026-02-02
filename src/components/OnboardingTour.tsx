@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronRight, ChevronLeft, Check } from "lucide-react";
 import { useFeatureFlags } from "@/context/FeatureFlagsContext";
+import { useAnalytics } from "@/context/AnalyticsContext";
 import styles from "./OnboardingTour.module.css";
 
 interface TourStep {
@@ -81,7 +82,19 @@ export default function OnboardingTour({ onOpenChatbot }: OnboardingTourProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(-1); // -1 = Welcome Modal
   const [rect, setRect] = useState<DOMRect | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const flags = useFeatureFlags();
+  const { trackAction } = useAnalytics();
+
+  // Detect mobile devices
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Filter steps based on active feature flags
   const activeSteps = useMemo(() => {
@@ -125,36 +138,51 @@ export default function OnboardingTour({ onOpenChatbot }: OnboardingTourProps) {
   }, [currentStep, getTarget]);
 
   const handleFinish = useCallback(() => {
+    // Determine context for tracking
+    if (currentStep === -1) {
+      trackAction("click", "tour-skip");
+    } else if (currentStep === activeSteps.length - 1) {
+      trackAction("complete", "tour");
+    } else {
+      trackAction("click", "tour-close", { step: currentStep });
+    }
+
     setIsOpen(false);
     localStorage.setItem("hasSeenOnboarding", "true");
-  }, []);
+  }, [currentStep, activeSteps.length, trackAction]);
 
   const handleStart = useCallback(() => {
+    trackAction("click", "tour-start");
     setCurrentStep(0);
-  }, []);
+  }, [trackAction]);
 
   const handleNext = useCallback(() => {
     if (currentStep < activeSteps.length - 1) {
+      trackAction("click", "tour-next", { step: currentStep + 1, total: activeSteps.length });
       setCurrentStep((prev) => prev + 1);
     } else {
       handleFinish();
     }
-  }, [currentStep, activeSteps.length, handleFinish]);
+  }, [currentStep, activeSteps.length, handleFinish, trackAction]);
 
   const handlePrev = useCallback(() => {
     if (currentStep > 0) {
+      trackAction("click", "tour-prev", { step: currentStep - 1 });
       setCurrentStep((prev) => prev - 1);
     }
-  }, [currentStep]);
+  }, [currentStep, trackAction]);
 
   useEffect(() => {
     const hasSeen = localStorage.getItem("hasSeenOnboarding");
     if (!hasSeen) {
       // Small delay to ensure loading is done
-      const timer = setTimeout(() => setIsOpen(true), 1500);
+      const timer = setTimeout(() => {
+        setIsOpen(true);
+        trackAction("view", "tour-modal");
+      }, 1500);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [trackAction]);
 
   useEffect(() => {
     if (currentStep >= 0 && currentStep < activeSteps.length) {
@@ -207,7 +235,8 @@ export default function OnboardingTour({ onOpenChatbot }: OnboardingTourProps) {
     }
   }, [currentStep, updateRect]);
 
-  if (!isOpen) return null;
+  // Skip tour on mobile devices or when not open
+  if (isMobile || !isOpen) return null;
 
   return (
     <AnimatePresence>

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePortfolio } from "@/context/PortfolioContext";
 import GlitchText from "./GlitchText";
 import { getSkillIcon, getSkillColor, getSkillBrandColor } from "@/utils/skillIcons";
-import { useSectionTracking } from "@/hooks/useAnalytics";
+import { useSectionTracking, useAnalytics } from "@/hooks/useAnalytics";
 
 type SkillCategory = "All" | "Frontend" | "Backend" | "Tools";
 
@@ -13,6 +13,7 @@ export default function Skills() {
   const portfolio = usePortfolio();
   const [activeTab, setActiveTab] = useState<SkillCategory>("All");
   const sectionRef = useSectionTracking("skills");
+  const { trackAction } = useAnalytics();
 
   if (!portfolio) return null;
 
@@ -64,7 +65,10 @@ export default function Skills() {
             {categories.map((category) => (
               <button
                 key={category}
-                onClick={() => setActiveTab(category)}
+                onClick={() => {
+                  setActiveTab(category);
+                  trackAction("click", "skills-tab", { category });
+                }}
                 className={`relative px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeTab === category ? "theme-text" : "theme-text-secondary hover:theme-text"
                 }`}

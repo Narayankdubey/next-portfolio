@@ -4,8 +4,10 @@ import { usePortfolio } from "@/context/PortfolioContext";
 import TiltCard from "./TiltCard";
 import { getSkillIcon } from "@/utils/skillIcons";
 import { IProject } from "@/models/Portfolio";
+import { useAnalytics } from "@/context/AnalyticsContext";
 
 function ProjectCard({ project }: { project: IProject }) {
+  const { trackAction } = useAnalytics();
   return (
     <motion.div
       layout
@@ -44,6 +46,7 @@ function ProjectCard({ project }: { project: IProject }) {
               <motion.a
                 href={project.github}
                 whileHover={{ scale: 1.1 }}
+                onClick={() => trackAction("click", "project-github", { title: project.title })}
                 whileTap={{ scale: 0.95 }}
                 className="flex items-center gap-2 px-4 py-2 theme-card border theme-border rounded-lg hover:border-blue-500 transition-colors theme-text"
               >
@@ -55,6 +58,7 @@ function ProjectCard({ project }: { project: IProject }) {
                   href={project.demo}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={() => trackAction("click", "project-demo", { title: project.title })}
                   className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg text-white"
                 >
                   <ExternalLink className="w-4 h-4" />

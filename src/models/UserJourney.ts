@@ -1,6 +1,7 @@
 import mongoose, { Schema, Model, Document } from "mongoose";
 
 export interface ISectionImpression {
+  interactionId?: string;
   sectionId: string;
   viewedAt: Date;
   duration: number; // milliseconds
@@ -20,6 +21,13 @@ export interface ILocationInfo {
   ip?: string;
 }
 
+export interface IAction {
+  type: string;
+  target: string;
+  timestamp: Date;
+  metadata?: Record<string, any>;
+}
+
 export interface IUserJourney extends Document {
   sessionId: string;
   visitorId: string;
@@ -32,12 +40,14 @@ export interface IUserJourney extends Document {
   endTime?: Date;
   totalDuration?: number; // milliseconds
   events: ISectionImpression[];
+  actions: IAction[];
   createdAt: Date;
   updatedAt: Date;
 }
 
 const SectionImpressionSchema = new Schema<ISectionImpression>(
   {
+    interactionId: { type: String, required: false },
     sectionId: {
       type: String,
       required: true,
@@ -50,6 +60,8 @@ const SectionImpressionSchema = new Schema<ISectionImpression>(
         "testimonials",
         "contact",
         "blog",
+        "blog-listing",
+        "blog-detail",
       ],
     },
     viewedAt: { type: Date, required: true, default: Date.now },
@@ -78,6 +90,16 @@ const LocationInfoSchema = new Schema<ILocationInfo>(
     country: String,
     city: String,
     ip: String,
+  },
+  { _id: false }
+);
+
+const ActionSchema = new Schema<IAction>(
+  {
+    type: { type: String, required: true }, // e.g., 'click', 'navigation'
+    target: { type: String, required: true }, // e.g., 'navbar-home'
+    timestamp: { type: Date, default: Date.now },
+    metadata: { type: Map, of: Schema.Types.Mixed },
   },
   { _id: false }
 );
@@ -118,6 +140,7 @@ const UserJourneySchema = new Schema<IUserJourney>(
     endTime: Date,
     totalDuration: Number,
     events: [SectionImpressionSchema],
+    actions: [ActionSchema],
   },
   {
     timestamps: true,

@@ -1,10 +1,11 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import BlogCard from "@/components/BlogCard";
 import EmptyBlogState from "@/components/EmptyBlogState";
 import { BlogCardSkeleton } from "@/components/SkeletonLoader";
 import Navbar from "@/components/Navbar";
 import { Search, SlidersHorizontal } from "lucide-react";
+import { useAnalytics } from "@/context/AnalyticsContext";
 import styles from "./BlogPage.module.css";
 
 interface BlogSummary {
@@ -28,6 +29,48 @@ export default function BlogPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const { trackAction, trackSection } = useAnalytics();
+  const isFirstRender = useRef(true);
+
+  // Unique ID for this specific page view to group all interactions and duration
+  const viewId = useRef(`blog-listing-${Date.now()}`);
+  const startTime = useRef(Date.now());
+
+  useEffect(() => {
+    // Track initial view
+    trackSection("blog-listing", viewId.current);
+
+    // Track duration on unmount
+    return () => {
+      const duration = Date.now() - startTime.current;
+      trackSection("blog-listing", viewId.current, { duration });
+    };
+  }, [trackSection]);
+
+  // Track search with debounce
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    const handler = setTimeout(() => {
+      if (searchQuery.trim()) {
+        trackAction("search", "blog-search", { query: searchQuery });
+        trackSection("blog-listing", viewId.current, { interactions: 1 });
+      }
+    }, 1500); // 1.5s debounce
+
+    return () => clearTimeout(handler);
+  }, [searchQuery, trackAction, trackSection]);
+
+  // Track sort changes
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newSort = e.target.value as SortOption;
+    setSortBy(newSort);
+    trackAction("filter", "blog-sort", { option: newSort });
+    trackSection("blog-listing", viewId.current, { interactions: 1 });
+  };
 
   useEffect(() => {
     async function fetchBlogs() {
@@ -115,11 +158,7 @@ export default function BlogPage() {
 
           <div className={styles.sortBox}>
             <SlidersHorizontal className={styles.sortIcon} />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className={styles.sortSelect}
-            >
+            <select value={sortBy} onChange={handleSortChange} className={styles.sortSelect}>
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
               <option value="a-z">Title (A-Z)</option>
@@ -150,20 +189,28 @@ export default function BlogPage() {
         ) : (
           <div className={styles.grid}>
             {filteredAndSortedBlogs.map((b) => (
-              <BlogCard
+              <div
                 key={b.id}
-                id={b.id}
-                title={b.title}
-                description={b.description}
-                thumbnailUrl={b.thumbnailUrl}
-                type={b.type}
-                externalUrl={b.externalUrl}
-                createdAt={b.createdAt}
-                likeCount={b.likeCount}
-                commentCount={b.commentCount}
-                viewCount={b.viewCount}
-                slug={b.slug}
-              />
+                onClickCapture={() => {
+                  trackAction("click", "blog-card", { blogId: b.id, title: b.title });
+                  trackSection("blog-listing", viewId.current, { interactions: 1 });
+                }}
+                className="contents" // Use contents to avoid breaking grid layout
+              >
+                <BlogCard
+                  id={b.id}
+                  title={b.title}
+                  description={b.description}
+                  thumbnailUrl={b.thumbnailUrl}
+                  type={b.type}
+                  externalUrl={b.externalUrl}
+                  createdAt={b.createdAt}
+                  likeCount={b.likeCount}
+                  commentCount={b.commentCount}
+                  viewCount={b.viewCount}
+                  slug={b.slug}
+                />
+              </div>
             ))}
           </div>
         )}

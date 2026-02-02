@@ -5,15 +5,17 @@ import { Briefcase, Calendar } from "lucide-react";
 import { usePortfolio } from "@/context/PortfolioContext";
 import { useSound } from "@/context/SoundContext";
 import { IExperience } from "@/models/Portfolio";
+import { useSectionTracking } from "@/hooks/useAnalytics";
 
 export default function ExperienceTimeline() {
   const portfolio = usePortfolio();
   const { playHover } = useSound();
+  const experienceRef = useSectionTracking("experience");
 
   if (!portfolio) return null;
 
   return (
-    <section id="experience" className="py-20 relative overflow-hidden">
+    <section id="experience" ref={experienceRef} className="py-20 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

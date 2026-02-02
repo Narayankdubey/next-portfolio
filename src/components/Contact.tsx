@@ -5,6 +5,7 @@ import { Mail, MapPin, Phone, Send, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { usePortfolio } from "@/context/PortfolioContext";
 import { useToast } from "@/context/ToastContext";
+import { useSectionTracking, useAnalytics } from "@/hooks/useAnalytics";
 
 export default function Contact() {
   const [formState, setFormState] = useState({ name: "", email: "", message: "" });
@@ -12,10 +13,13 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showSuccess, showError } = useToast();
   const portfolio = usePortfolio();
+  const contactRef = useSectionTracking("contact");
+  const { trackAction } = useAnalytics();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    trackAction("click", "contact-submit", { formState });
 
     try {
       const response = await fetch("/api/contact", {
@@ -43,7 +47,11 @@ export default function Contact() {
   };
 
   return (
-    <section id="contact" className="min-h-screen flex items-center px-4 md:px-8 py-20">
+    <section
+      id="contact"
+      ref={contactRef}
+      className="min-h-screen flex items-center px-4 md:px-8 py-20"
+    >
       <div className="max-w-6xl mx-auto w-full">
         <motion.h2
           initial={{ opacity: 0, y: 30 }}
@@ -80,6 +88,12 @@ export default function Contact() {
                   key={text}
                   href={href}
                   whileHover={{ scale: 1.02, x: 10 }}
+                  onClick={() =>
+                    trackAction("click", "contact-link", {
+                      type: Icon === Mail ? "email" : Icon === Phone ? "phone" : "location",
+                      value: text,
+                    })
+                  }
                   className="flex items-center gap-4 p-4 theme-card border theme-border rounded-xl mb-4 hover:border-blue-500 transition-all group theme-shadow"
                 >
                   <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
@@ -113,8 +127,19 @@ export default function Contact() {
                   required
                   value={formState[field.id as keyof typeof formState]}
                   onChange={(e) => setFormState({ ...formState, [field.id]: e.target.value })}
-                  onFocus={() => setFocusedField(field.id)}
-                  onBlur={() => setFocusedField(null)}
+                  onFocus={() => {
+                    setFocusedField(field.id);
+                    trackAction("click", "contact-input", { field: field.id });
+                  }}
+                  onBlur={() => {
+                    setFocusedField(null);
+                    if (formState[field.id as keyof typeof formState].trim()) {
+                      trackAction("blur", "contact-input", {
+                        field: field.id,
+                        value: formState[field.id as keyof typeof formState],
+                      });
+                    }
+                  }}
                   className="w-full theme-input-bg border theme-input-border rounded-xl px-4 py-3 theme-text focus:outline-none focus:border-blue-500 transition-all"
                 />
                 {focusedField === field.id && (
@@ -135,8 +160,19 @@ export default function Contact() {
                 placeholder="Your Message"
                 value={formState.message}
                 onChange={(e) => setFormState({ ...formState, message: e.target.value })}
-                onFocus={() => setFocusedField("message")}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => {
+                  setFocusedField("message");
+                  trackAction("click", "contact-input", { field: "message" });
+                }}
+                onBlur={() => {
+                  setFocusedField(null);
+                  if (formState.message.trim()) {
+                    trackAction("blur", "contact-input", {
+                      field: "message",
+                      value: formState.message,
+                    });
+                  }
+                }}
                 className="w-full px-4 py-3 theme-input-bg border theme-input-border rounded-lg theme-text placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-none transition-colors"
               />
               {focusedField === "message" && (

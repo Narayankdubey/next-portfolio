@@ -4,10 +4,12 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Settings, X } from "lucide-react";
 import { useFeatureFlags } from "@/context/FeatureFlagsContext";
+import { useAnalytics } from "@/context/AnalyticsContext";
 
 export default function FeatureFlagsDebugger() {
   const [isOpen, setIsOpen] = useState(false);
   const flags = useFeatureFlags();
+  const { trackAction } = useAnalytics();
 
   if (!flags.devMode.showFeatureToggles) {
     return null;
@@ -17,7 +19,10 @@ export default function FeatureFlagsDebugger() {
     <>
       {/* Toggle Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          setIsOpen(!isOpen);
+          trackAction("click", "feature-flags-toggle", { state: !isOpen ? "open" : "close" });
+        }}
         className="fixed bottom-4 left-4 z-[9999] p-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg transition-colors"
         title="Feature Flags"
       >
@@ -40,7 +45,10 @@ export default function FeatureFlagsDebugger() {
                 Feature Flags
               </h3>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                  trackAction("click", "feature-flags-toggle", { state: "close" });
+                }}
                 className="text-gray-400 hover:text-white transition-colors"
               >
                 <X className="w-4 h-4" />

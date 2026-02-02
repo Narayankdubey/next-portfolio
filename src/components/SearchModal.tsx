@@ -5,6 +5,7 @@ import { Search, FileCode, Briefcase, Code2, ArrowRight } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePortfolio } from "@/context/PortfolioContext";
 import DraggableModal from "./DraggableModal";
+import { useAnalytics } from "@/context/AnalyticsContext";
 
 interface SearchResult {
   type: "project" | "skill" | "experience";
@@ -25,16 +26,18 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { trackAction } = useAnalytics();
 
   const handleSelectResult = useCallback(
     (result: SearchResult) => {
+      trackAction("click", "search-result", { type: result.type, title: result.title });
       const element = document.querySelector(result.href);
       if (element) {
         element.scrollIntoView({ behavior: "smooth" });
         onClose();
       }
     },
-    [onClose]
+    [onClose, trackAction]
   );
 
   // Focus input when modal opens
@@ -127,6 +130,15 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
     setTimeout(() => setResults(searchResults.slice(0, 10)), 0);
     setTimeout(() => setSelectedIndex(0), 0);
   }, [query, portfolio]);
+
+  // Debounced tracking for search input
+  useEffect(() => {
+    if (!query.trim()) return;
+    const debounceTimer = setTimeout(() => {
+      trackAction("input", "search-query", { query });
+    }, 1000);
+    return () => clearTimeout(debounceTimer);
+  }, [query, trackAction]);
 
   const getIcon = (type: string) => {
     switch (type) {

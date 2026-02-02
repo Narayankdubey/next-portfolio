@@ -1,27 +1,22 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
-import VisitorStats from "@/models/VisitorStats";
+import UserJourney from "@/models/UserJourney";
 
 export async function GET() {
   try {
     await dbConnect();
 
-    // Get total visits (sum of all visitCounts)
-    const result = await VisitorStats.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalVisits: { $sum: "$visitCount" },
-          uniqueVisitors: { $sum: 1 },
-        },
-      },
-    ]);
+    // Count total sessions (visits)
+    const totalVisits = await UserJourney.countDocuments();
 
-    const stats = result[0] || { totalVisits: 0, uniqueVisitors: 0 };
+    // Count unique visitors
+    const uniqueVisitors = await UserJourney.distinct("visitorId").then(
+      (visitors) => visitors.length
+    );
 
     return NextResponse.json({
-      totalVisits: stats.totalVisits,
-      uniqueVisitors: stats.uniqueVisitors,
+      totalVisits,
+      uniqueVisitors,
     });
   } catch (error) {
     console.error("Total visits error:", error);

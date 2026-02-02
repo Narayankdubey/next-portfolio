@@ -5,12 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
 
 import { usePortfolio } from "@/context/PortfolioContext";
+import { useSectionTracking } from "@/hooks/useAnalytics";
 
 export default function TestimonialCarousel() {
   const portfolio = usePortfolio();
   const testimonials = portfolio?.testimonials || [];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
+  const testimonialsRef = useSectionTracking("testimonials");
 
   const handleNext = () => {
     setDirection(1);
@@ -46,7 +48,11 @@ export default function TestimonialCarousel() {
   };
 
   return (
-    <div className="relative w-full max-w-4xl mx-auto py-20 px-4 overflow-hidden">
+    <div
+      ref={testimonialsRef}
+      id="testimonials"
+      className="relative w-full max-w-4xl mx-auto py-20 px-4 overflow-hidden"
+    >
       <div className="text-center mb-12">
         <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent mb-4">
           What People Say

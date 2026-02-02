@@ -20,6 +20,7 @@ import {
   Check,
 } from "lucide-react";
 import { usePortfolio } from "@/context/PortfolioContext";
+import { useAnalytics } from "@/context/AnalyticsContext";
 import styles from "../BlogDetail.module.css";
 
 interface BlogDetail {
@@ -46,6 +47,7 @@ export default function BlogDetailPage() {
   const router = useRouter();
   const portfolio = usePortfolio();
   const slug = params?.slug as string;
+  const { trackAction, trackSection } = useAnalytics();
   const [post, setPost] = useState<BlogDetail | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,6 +67,67 @@ export default function BlogDetailPage() {
   const [translating, setTranslating] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const startTimeRef = useRef<number>(Date.now());
+  const viewId = useRef(`blog-detail-${slug}-${Date.now()}`);
+
+  useEffect(() => {
+    if (!slug) return;
+
+    // Track view as a section
+    trackSection("blog-detail", viewId.current, { interactions: 0 });
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        const duration = Date.now() - startTimeRef.current;
+        trackSection("blog-detail", viewId.current, { duration });
+      }
+    };
+
+    // Add listeners for reliable exit tracking
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Track time spent on unmount (fallback)
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      const duration = Date.now() - startTimeRef.current;
+      trackSection("blog-detail", viewId.current, { duration });
+    };
+  }, [slug, trackSection]);
+
+  // Scroll tracking
+  const lastScrollPos = useRef({ x: 0, y: 0 });
+  useEffect(() => {
+    if (!slug) return;
+
+    let debounceTimer: NodeJS.Timeout;
+
+    const handleScroll = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        const currentX = window.scrollX;
+        const currentY = window.scrollY;
+        const { x: lastX, y: lastY } = lastScrollPos.current;
+
+        // Only track significant consecutive scrolls (e.g. > 50px difference)
+        if (Math.abs(currentY - lastY) > 50 || Math.abs(currentX - lastX) > 50) {
+          trackAction("scroll", "blog-scroll", {
+            slug,
+            from: { x: lastX, y: lastY },
+            to: { x: currentX, y: currentY },
+          });
+          trackSection("blog-detail", viewId.current, { interactions: 1 });
+          lastScrollPos.current = { x: currentX, y: currentY };
+        }
+      }, 1500); // 1.5s debounce
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(debounceTimer);
+    };
+  }, [slug, trackAction, trackSection]);
 
   useEffect(() => {
     if (!slug) return;
@@ -114,6 +177,8 @@ export default function BlogDetailPage() {
 
   const handleLike = async () => {
     if (!slug || hasLiked) return;
+    trackAction("click", "blog-like", { slug });
+    trackSection("blog-detail", viewId.current, { interactions: 1 });
 
     try {
       const res = await fetch(`/api/blog/${slug}/like`, { method: "POST" });
@@ -135,6 +200,8 @@ export default function BlogDetailPage() {
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentText.trim() || submitting) return;
+    trackAction("click", "blog-comment-submit", { slug });
+    trackSection("blog-detail", viewId.current, { interactions: 1 });
 
     setSubmitting(true);
     setSubmitMessage("");
@@ -197,6 +264,8 @@ export default function BlogDetailPage() {
 
   // Share functionality
   const handleShare = (platform: string) => {
+    trackAction("click", "blog-share", { platform, slug });
+    trackSection("blog-detail", viewId.current, { interactions: 1 });
     const url = window.location.href;
     const title = post?.title || "Check out this blog post";
 
@@ -213,6 +282,8 @@ export default function BlogDetailPage() {
   };
 
   const handleCopyLink = async () => {
+    trackAction("click", "blog-share-copy", { slug });
+    trackSection("blog-detail", viewId.current, { interactions: 1 });
     try {
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
@@ -230,12 +301,18 @@ export default function BlogDetailPage() {
       // Pause
       window.speechSynthesis.pause();
       setIsPaused(true);
+      trackAction("click", "blog-read-pause", { slug });
+      trackSection("blog-detail", viewId.current, { interactions: 1 });
     } else if (isPaused) {
       // Resume
       window.speechSynthesis.resume();
       setIsPaused(false);
+      trackAction("click", "blog-read-resume", { slug });
+      trackSection("blog-detail", viewId.current, { interactions: 1 });
     } else {
       // Start reading
+      trackAction("click", "blog-read-start", { slug });
+      trackSection("blog-detail", viewId.current, { interactions: 1 });
       const tempDiv = document.createElement("div");
       tempDiv.innerHTML = post.content;
       const textContent = tempDiv.textContent || tempDiv.innerText || "";
@@ -258,6 +335,8 @@ export default function BlogDetailPage() {
   };
 
   const handleStopReading = () => {
+    trackAction("click", "blog-read-stop", { slug });
+    trackSection("blog-detail", viewId.current, { interactions: 1 });
     window.speechSynthesis.cancel();
     setIsReading(false);
     setIsPaused(false);
@@ -266,6 +345,8 @@ export default function BlogDetailPage() {
   // Translation functionality
   const handleTranslate = async (lang: string) => {
     if (!post || !originalContent) return;
+    trackAction("click", "blog-translate", { language: lang, slug });
+    trackSection("blog-detail", viewId.current, { interactions: 1 });
 
     setSelectedLang(lang);
 
@@ -326,7 +407,14 @@ export default function BlogDetailPage() {
     <>
       <Navbar />
       <article className={styles.container}>
-        <Link href="/blog" className={styles.backButton}>
+        <Link
+          href="/blog"
+          className={styles.backButton}
+          onClick={() => {
+            trackAction("click", "blog-back", { slug });
+            trackSection("blog-detail", viewId.current, { interactions: 1 });
+          }}
+        >
           <ArrowLeft className={styles.backIcon} />
           Back to Blog
         </Link>
@@ -511,6 +599,16 @@ export default function BlogDetailPage() {
                 placeholder="Name (Optional)"
                 value={authorName}
                 onChange={(e) => setAuthorName(e.target.value)}
+                onBlur={() => {
+                  if (authorName.trim()) {
+                    trackAction("blur", "blog-comment-input", {
+                      field: "name",
+                      value: authorName,
+                      slug,
+                    });
+                    trackSection("blog-detail", viewId.current, { interactions: 1 });
+                  }
+                }}
                 maxLength={50}
                 disabled={submitting}
               />
@@ -520,6 +618,16 @@ export default function BlogDetailPage() {
               placeholder="Write your comment... (max 1000 characters)"
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
+              onBlur={() => {
+                if (commentText.trim()) {
+                  trackAction("blur", "blog-comment-input", {
+                    field: "content",
+                    value: commentText,
+                    slug,
+                  });
+                  trackSection("blog-detail", viewId.current, { interactions: 1 });
+                }
+              }}
               maxLength={1000}
               rows={4}
               disabled={submitting}

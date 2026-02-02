@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Music } from "lucide-react";
 
 import { usePortfolio } from "@/context/PortfolioContext";
+import { useAnalytics } from "@/context/AnalyticsContext";
 
 interface MusicPlayerProps {
   isOpen: boolean;
@@ -18,18 +19,29 @@ export default function MusicPlayer({ isOpen, onClose }: MusicPlayerProps) {
   const [currentTrack, setCurrentTrack] = useState(0);
   const [volume, setVolume] = useState(0.5);
   const [isMuted, setIsMuted] = useState(false);
+  const { trackAction } = useAnalytics();
 
-  const handlePlayPause = () => setIsPlaying(!isPlaying);
+  const handlePlayPause = () => {
+    setIsPlaying(!isPlaying);
+    trackAction("click", "music-control", {
+      action: isPlaying ? "pause" : "play",
+      track: playlist[currentTrack]?.title,
+    });
+  };
 
   const handleNext = () => {
     if (playlist.length > 0) {
-      setCurrentTrack((prev) => (prev + 1) % playlist.length);
+      const nextTrack = (currentTrack + 1) % playlist.length;
+      setCurrentTrack(nextTrack);
+      trackAction("click", "music-control", { action: "next", track: playlist[nextTrack]?.title });
     }
   };
 
   const handlePrev = () => {
     if (playlist.length > 0) {
-      setCurrentTrack((prev) => (prev - 1 + playlist.length) % playlist.length);
+      const prevTrack = (currentTrack - 1 + playlist.length) % playlist.length;
+      setCurrentTrack(prevTrack);
+      trackAction("click", "music-control", { action: "prev", track: playlist[prevTrack]?.title });
     }
   };
 
@@ -54,7 +66,16 @@ export default function MusicPlayer({ isOpen, onClose }: MusicPlayerProps) {
                 <Music className="w-3 h-3" />
                 <span>WINAMP_2077.exe</span>
               </div>
-              <button onClick={onClose} className="text-white/80 hover:text-white">
+              <button
+                onClick={() => {
+                  trackAction("click", "modal-close", {
+                    modalId: "music-player",
+                    title: "Music Player",
+                  });
+                  onClose();
+                }}
+                className="text-white/80 hover:text-white"
+              >
                 ×
               </button>
             </div>
@@ -120,7 +141,13 @@ export default function MusicPlayer({ isOpen, onClose }: MusicPlayerProps) {
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setIsMuted(!isMuted)}
+                  onClick={() => {
+                    setIsMuted(!isMuted);
+                    trackAction("click", "music-control", {
+                      action: isMuted ? "unmute" : "mute",
+                      volume,
+                    });
+                  }}
                   className="theme-text-secondary hover:text-[var(--accent-primary)]"
                 >
                   {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
@@ -131,7 +158,11 @@ export default function MusicPlayer({ isOpen, onClose }: MusicPlayerProps) {
                   max="1"
                   step="0.01"
                   value={isMuted ? 0 : volume}
-                  onChange={(e) => setVolume(parseFloat(e.target.value))}
+                  onChange={(e) => {
+                    const newVolume = parseFloat(e.target.value);
+                    setVolume(newVolume);
+                    trackAction("change", "music-control", { action: "volume", value: newVolume });
+                  }}
                   className="w-full h-1 theme-border rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[var(--accent-primary)] [&::-webkit-slider-thumb]:rounded-full"
                 />
               </div>

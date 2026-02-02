@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ReactNode, useState, useEffect } from "react";
 import { Minus, Square, X, Maximize2 } from "lucide-react";
 import { useMinimizedWindows } from "@/context/MinimizedWindowsContext";
+import { useAnalytics } from "@/context/AnalyticsContext";
 
 interface DraggableModalProps {
   isOpen: boolean;
@@ -31,13 +32,21 @@ export default function DraggableModal({
   const [state, setState] = useState<"normal" | "minimized" | "maximized">("normal");
   const [size, setSize] = useState({ width: defaultWidth, height: defaultHeight });
   const { addWindow, removeWindow, getPosition } = useMinimizedWindows();
+  const { trackAction } = useAnalytics();
+
+  const handleCloseInternal = () => {
+    trackAction("click", "modal-close", { modalId: windowId, title });
+    onClose();
+  };
 
   const handleMinimize = () => {
     if (state === "minimized") {
       setState("normal");
+      trackAction("click", "modal-restore", { modalId: windowId, title, from: "minimized" });
       removeWindow(windowId);
     } else {
       setState("minimized");
+      trackAction("click", "modal-minimize", { modalId: windowId, title });
       addWindow({
         id: windowId,
         title,
@@ -47,7 +56,13 @@ export default function DraggableModal({
   };
 
   const handleMaximize = () => {
-    setState(state === "maximized" ? "normal" : "maximized");
+    const newState = state === "maximized" ? "normal" : "maximized";
+    setState(newState);
+    trackAction("click", newState === "maximized" ? "modal-maximize" : "modal-restore", {
+      modalId: windowId,
+      title,
+      from: state,
+    });
   };
 
   // Remove from minimized windows when component unmounts or is closed
@@ -117,7 +132,7 @@ export default function DraggableModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose}
+          onClick={handleCloseInternal}
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
         />
       )}
@@ -163,7 +178,7 @@ export default function DraggableModal({
                 )}
               </button>
               <button
-                onClick={onClose}
+                onClick={handleCloseInternal}
                 className="p-1.5 hover:bg-red-500/20 rounded-full transition-colors group cursor-pointer"
                 title="Close"
               >

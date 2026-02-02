@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
 import dbConnect from "@/lib/mongodb";
 import UserJourney from "@/models/UserJourney";
 
@@ -14,13 +15,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const { id } = await params;
 
-    const journey = await UserJourney.findOne({ sessionId: id }).select("-__v").lean();
+    // Fetch all journeys for this visitor
+    const journeys = await UserJourney.find({ visitorId: id })
+      .sort({ startTime: -1 })
+      .select("-__v")
+      .lean();
 
-    if (!journey) {
-      return NextResponse.json({ error: "Journey not found" }, { status: 404 });
+    if (!journeys || journeys.length === 0) {
+      return NextResponse.json({ error: "Visitor not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ journey });
+    return NextResponse.json({ journeys });
   } catch (error) {
     console.error("Get journey error:", error);
     return NextResponse.json({ error: "Failed to fetch journey" }, { status: 500 });

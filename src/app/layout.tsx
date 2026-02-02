@@ -4,6 +4,7 @@ import { MinimizedWindowsProvider } from "@/context/MinimizedWindowsContext";
 import { SoundProvider } from "@/context/SoundContext";
 import { FeatureFlagsProvider } from "@/context/FeatureFlagsContext";
 import { PortfolioProvider } from "@/context/PortfolioContext";
+import { AnalyticsProvider } from "@/context/AnalyticsContext";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import type { Metadata } from "next";
@@ -57,7 +58,9 @@ export default async function RootLayout({
             <SoundProvider>
               <ToastProvider>
                 <MinimizedWindowsProvider>
-                  <PortfolioProvider portfolio={portfolioData}>{children}</PortfolioProvider>
+                  <PortfolioProvider portfolio={portfolioData}>
+                    <AnalyticsProvider>{children}</AnalyticsProvider>
+                  </PortfolioProvider>
                 </MinimizedWindowsProvider>
               </ToastProvider>
             </SoundProvider>

@@ -23,6 +23,7 @@ import Image from "next/image";
 // import Link from "next/link"; // Unused now
 import { usePortfolio } from "@/context/PortfolioContext";
 import { useFeatureFlags } from "@/context/FeatureFlagsContext";
+import { useAnalytics } from "@/context/AnalyticsContext";
 import GlitchText from "./GlitchText";
 
 interface HeroProps {
@@ -56,6 +57,7 @@ export default function Hero({
 }: HeroProps) {
   const portfolio = usePortfolio();
   const flags = useFeatureFlags();
+  const { trackAction } = useAnalytics();
 
   if (!portfolio) return null;
 
@@ -145,6 +147,7 @@ export default function Hero({
               rel="noopener noreferrer"
               whileHover={{ scale: 1.1, rotate: 5 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => trackAction("click", "hero-social", { platform: "github" })}
               className="p-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-colors"
             >
               <Github className="w-5 h-5" />
@@ -155,6 +158,7 @@ export default function Hero({
               rel="noopener noreferrer"
               whileHover={{ scale: 1.1, rotate: -5 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => trackAction("click", "hero-social", { platform: "linkedin" })}
               className="p-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-colors"
             >
               <Linkedin className="w-5 h-5" />
@@ -163,6 +167,7 @@ export default function Hero({
               href={`mailto:${social.email}`}
               whileHover={{ scale: 1.1, rotate: 5 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => trackAction("click", "hero-social", { platform: "mail" })}
               className="p-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-colors"
             >
               <Mail className="w-5 h-5" />
@@ -183,9 +188,10 @@ export default function Hero({
             boxShadow: "0 20px 35px -5px rgba(37, 99, 235, 0.5)",
           }}
           whileTap={{ scale: 0.95 }}
-          onClick={() =>
-            document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" })
-          }
+          onClick={() => {
+            document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
+            trackAction("click", "hero-cta", { label: "view-my-work" });
+          }}
           className="w-fit px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full font-medium text-white cursor-pointer relative overflow-hidden group"
         >
           <span className="relative z-10">View My Work</span>
@@ -295,7 +301,10 @@ export default function Hero({
                   return (
                     <motion.button
                       key={app.name}
-                      onClick={app.onClick}
+                      onClick={() => {
+                        app.onClick();
+                        trackAction("click", "hero-quick-action", { action: app.name });
+                      }}
                       whileHover={{ scale: 1.05, y: -5 }}
                       whileTap={{ scale: 0.95 }}
                       className={`group relative flex flex-col items-center justify-center gap-2 ${

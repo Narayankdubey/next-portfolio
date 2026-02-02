@@ -100,7 +100,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Visitor Trends Chart */}
         <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 h-96">
-          <h2 className="text-xl font-bold text-white mb-6">Visitor Trends (Last 7 Days)</h2>
+          <h2 className="text-xl font-bold text-white mb-6">Journey Trends (Last 7 Days)</h2>
           <ResponsiveContainer width="100%" height="85%">
             <LineChart data={stats.visitsByDay}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />

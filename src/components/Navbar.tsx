@@ -1,5 +1,7 @@
 "use client";
 
+import { useFeatureFlags } from "@/context/FeatureFlagsContext";
+
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -9,7 +11,7 @@ import { usePortfolio } from "@/context/PortfolioContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useSound } from "@/context/SoundContext";
 import { useResume } from "@/hooks/useResume";
-import { useFeatureFlags } from "@/context/FeatureFlagsContext";
+import { useAnalytics } from "@/context/AnalyticsContext";
 
 const allNavItems = [
   { name: "Home", href: "#home" },
@@ -30,15 +32,21 @@ export default function Navbar() {
   const portfolio = usePortfolio();
   const pathname = usePathname();
   const flags = useFeatureFlags();
+  const { trackAction } = useAnalytics();
 
   // Filter nav items based on feature flags
   const navItems = allNavItems.filter(
     (item) => !item.requiresFlag || flags.features[item.requiresFlag]
   );
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    item: { name: string; href: string }
+  ) => {
+    trackAction("click", "navbar", { label: item.name, href: item.href });
+
     const isHomePage = pathname === "/";
-    const isAnchorLink = href.startsWith("#");
+    const isAnchorLink = item.href.startsWith("#");
 
     if (!isHomePage && isAnchorLink) {
       // If not on home page and clicking anchor, let Link handle the navigation to /#section
@@ -47,14 +55,9 @@ export default function Navbar() {
     }
 
     if (isHomePage && isAnchorLink) {
-      // If on home page and clicking anchor, prevent default to allow smooth scroll if needed
-      // or just let it be. But if we use Link with scroll={true} (default), it might be fine.
-      // However, usually for smooth scroll on same page we might want to handle it manually or let CSS handle it.
-      // For now, we'll just close the menu.
       setIsOpen(false);
     }
 
-    // For normal links (like /blog, /chat), just close menu
     setIsOpen(false);
   };
 
@@ -81,7 +84,10 @@ export default function Navbar() {
             href="/#home"
             className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
             onMouseEnter={playHover}
-            onClick={playClick}
+            onClick={() => {
+              playClick();
+              trackAction("click", "navbar-logo");
+            }}
           >
             <motion.span whileHover={{ scale: 1.05 }} className="inline-block">
               {portfolio?.personal.name}
@@ -97,7 +103,7 @@ export default function Navbar() {
                     href={
                       item.href.startsWith("#") && pathname !== "/" ? `/${item.href}` : item.href
                     }
-                    onClick={(e) => handleNavClick(e, item.href)}
+                    onClick={(e) => handleNavClick(e, item)}
                     className="theme-text-secondary hover:opacity-80 transition-opacity cursor-pointer"
                     onMouseEnter={playHover}
                   >
@@ -113,6 +119,9 @@ export default function Navbar() {
                 onClick={() => {
                   toggleTheme();
                   playClick();
+                  trackAction("click", "theme-toggle", {
+                    theme: theme === "light" ? "dark" : "light",
+                  });
                 }}
                 className="p-2 rounded-full theme-card hover:opacity-80 transition-opacity cursor-pointer"
                 title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
@@ -125,7 +134,10 @@ export default function Navbar() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={handleDownload}
+              onClick={() => {
+                handleDownload();
+                trackAction("click", "resume-download");
+              }}
               disabled={isGenerating}
               className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full text-sm font-medium disabled:opacity-50 text-white cursor-pointer"
             >
@@ -151,7 +163,7 @@ export default function Navbar() {
               <Link
                 key={item.name}
                 href={item.href.startsWith("#") && pathname !== "/" ? `/${item.href}` : item.href}
-                onClick={(e) => handleNavClick(e, item.href)}
+                onClick={(e) => handleNavClick(e, item)}
                 className="block text-gray-300 hover:text-white transition-colors"
               >
                 {item.name}

@@ -13,9 +13,13 @@
   --button-text: #ffffff;
   --shadow-color: rgba(0, 0, 0, 0.5);
   --terminal-bg: rgba(10, 10, 10, 0.95);
-  --accent-primary: #2563eb; /* blue-600 */
-  --accent-secondary: #9333ea; /* purple-600 */
+  --accent-primary: #2563eb;
+  /* blue-600 */
+  --accent-secondary: #9333ea;
+  /* purple-600 */
   --accent-gradient: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+  --pre-bg: #1e293b;
+  --pre-text: #e2e8f0;
 }
 
 .light {
@@ -34,6 +38,8 @@
   --accent-primary: #2563eb;
   --accent-secondary: #9333ea;
   --accent-gradient: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+  --pre-bg: #ffffff;
+  --pre-text: #1e293b;
 }
 
 * {
@@ -170,6 +176,7 @@ html {
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }

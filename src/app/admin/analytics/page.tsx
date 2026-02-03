@@ -94,7 +94,14 @@ export default function AnalyticsPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
+    try {
+      if (!dateString) return "N/A";
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date";
+      return date.toLocaleString();
+    } catch {
+      return "Invalid Date";
+    }
   };
 
   return (
@@ -104,8 +111,8 @@ export default function AnalyticsPage() {
         {/* Header */}
         <div className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-4xl font-bold theme-text mb-2">User Journey Analytics</h1>
-            <p className="theme-text-secondary">Track visitor behavior and section impressions</p>
+            <h1 className="text-4xl font-bold text-white mb-2">User Journey Analytics</h1>
+            <p className="text-gray-400">Track visitor behavior and section impressions</p>
           </div>
           <button
             onClick={handleRefresh}
@@ -119,12 +126,12 @@ export default function AnalyticsPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <motion.div className="theme-card p-6 rounded-xl border theme-border">
+          <motion.div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
             <div className="flex items-center gap-3">
               <Users className="w-8 h-8 text-blue-400" />
               <div>
-                <p className="text-sm theme-text-secondary">Total Visitors</p>
-                <p className="text-2xl font-bold theme-text">{pagination.total}</p>
+                <p className="text-sm text-gray-400">Total Visitors</p>
+                <p className="text-2xl font-bold text-white">{pagination.total}</p>
               </div>
             </div>
           </motion.div>
@@ -143,7 +150,7 @@ export default function AnalyticsPage() {
                 className={`px-4 py-2 rounded-lg transition-colors ${
                   filter === (f === "all" ? "" : f)
                     ? "bg-blue-600 text-white"
-                    : "theme-card theme-text hover:bg-blue-600/20"
+                    : "bg-gray-800 text-gray-200 border border-gray-700 hover:bg-gray-700"
                 }`}
               >
                 {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -162,48 +169,48 @@ export default function AnalyticsPage() {
                   setSearch(e.target.value);
                   setPage(1);
                 }}
-                className="w-full pl-10 pr-4 py-2 rounded-lg theme-card theme-text border theme-border focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-800 text-gray-200 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
         </div>
 
         {/* Journeys Table */}
-        <div className="theme-card rounded-xl border theme-border overflow-hidden">
+        <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-800/50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium theme-text-secondary uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Session
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium theme-text-secondary uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Landing Page
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium theme-text-secondary uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Device
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium theme-text-secondary uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Sections Viewed
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium theme-text-secondary uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Duration
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium theme-text-secondary uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Time
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y theme-border">
+              <tbody className="divide-y divide-gray-700">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center theme-text-secondary">
+                    <td colSpan={6} className="px-6 py-8 text-center text-gray-400">
                       Loading...
                     </td>
                   </tr>
                 ) : journeys.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center theme-text-secondary">
+                    <td colSpan={6} className="px-6 py-8 text-center text-gray-400">
                       No journeys found
                     </td>
                   </tr>
@@ -211,7 +218,7 @@ export default function AnalyticsPage() {
                   journeys.map((journey) => (
                     <tr
                       key={journey._id}
-                      className="hover:bg-gray-800/30 cursor-pointer transition-colors"
+                      className="hover:bg-gray-700/50 cursor-pointer transition-colors"
                     >
                       <td className="px-6 py-4">
                         <Link
@@ -221,13 +228,13 @@ export default function AnalyticsPage() {
                           {(journey.sessionId || journey.visitorId || "").substring(0, 12)}...
                         </Link>
                       </td>
-                      <td className="px-6 py-4 theme-text text-sm">{journey.landingPage}</td>
+                      <td className="px-6 py-4 text-gray-200 text-sm">{journey.landingPage}</td>
                       <td className="px-6 py-4">
                         <div className="text-sm">
-                          <div className="theme-text capitalize">
+                          <div className="text-gray-200 capitalize">
                             {journey.device.deviceName || journey.device.type}
                           </div>
-                          <div className="theme-text-secondary text-xs">
+                          <div className="text-gray-400 text-xs">
                             {journey.device.os} / {journey.device.browser}
                           </div>
                         </div>
@@ -244,10 +251,10 @@ export default function AnalyticsPage() {
                           ))}
                         </div>
                       </td>
-                      <td className="px-6 py-4 theme-text text-sm">
+                      <td className="px-6 py-4 text-gray-200 text-sm">
                         {formatDuration(journey.totalDuration)}
                       </td>
-                      <td className="px-6 py-4 theme-text-secondary text-sm">
+                      <td className="px-6 py-4 text-gray-400 text-sm">
                         {formatDate(journey.startTime)}
                       </td>
                     </tr>
@@ -259,22 +266,22 @@ export default function AnalyticsPage() {
 
           {/* Pagination */}
           {pagination.pages > 1 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t theme-border">
-              <div className="theme-text-secondary text-sm">
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-700">
+              <div className="text-gray-400 text-sm">
                 Page {page} of {pagination.pages}
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-3 py-1 rounded theme-card theme-text disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600/20"
+                  className="px-3 py-1 rounded bg-gray-700 text-gray-200 border border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
                   disabled={page === pagination.pages}
-                  className="px-3 py-1 rounded theme-card theme-text disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600/20"
+                  className="px-3 py-1 rounded bg-gray-700 text-gray-200 border border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>

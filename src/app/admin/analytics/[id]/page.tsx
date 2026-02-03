@@ -112,10 +112,21 @@ export default function JourneyDetailPage() {
     return `${seconds}s`;
   };
 
+  const formatDate = (dateString: any) => {
+    try {
+      if (!dateString) return "N/A";
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date";
+      return date.toLocaleString();
+    } catch {
+      return "Invalid Date";
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen theme-bg flex items-center justify-center">
-        <div className="theme-text">Loading visitor history...</div>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-gray-200">Loading visitor history...</div>
       </div>
     );
   }
@@ -152,15 +163,13 @@ export default function JourneyDetailPage() {
               {refreshing ? "Refreshing..." : "Refresh"}
             </button>
           </div>
-          <h1 className="text-3xl font-bold theme-text mb-2">Visitor Details</h1>
-          <div className="flex items-center gap-4 text-sm theme-text-secondary font-mono">
+          <h1 className="text-3xl font-bold text-white mb-2">Visitor Details</h1>
+          <div className="flex items-center gap-4 text-sm text-gray-400 font-mono">
             <span>ID: {latestJourney.visitorId}</span>
             <span>•</span>
             <span>{journeys.length} Sessions</span>
             <span>•</span>
-            <span>
-              First Seen: {new Date(journeys[journeys.length - 1].startTime).toLocaleDateString()}
-            </span>
+            <span>First Seen: {formatDate(journeys[journeys.length - 1].startTime)}</span>
           </div>
         </div>
 
@@ -169,7 +178,7 @@ export default function JourneyDetailPage() {
           {journeys.map((journey) => (
             <div
               key={journey.sessionId}
-              className="theme-card rounded-xl border theme-border overflow-hidden"
+              className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden"
             >
               {/* Session Header */}
               <div
@@ -183,24 +192,24 @@ export default function JourneyDetailPage() {
                 <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-blue-400" />
-                    <span className="theme-text font-medium">
-                      {new Date(journey.startTime).toLocaleString()}
+                    <span className="text-gray-200 font-medium">
+                      {formatDate(journey.startTime)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Monitor className="w-4 h-4 text-purple-400" />
-                    <span className="theme-text-secondary text-sm">
+                    <span className="text-gray-400 text-sm">
                       {journey.device.deviceName || journey.device.type} ({journey.device.browser})
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-green-400" />
-                    <span className="theme-text-secondary text-sm">
+                    <span className="text-gray-400 text-sm">
                       {formatDuration(journey.totalDuration)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="theme-text-secondary text-sm px-2 py-0.5 bg-gray-700 rounded">
+                    <span className="text-gray-400 text-sm px-2 py-0.5 bg-gray-700 rounded">
                       {journey.events.length} interactions
                     </span>
                   </div>
@@ -221,30 +230,32 @@ export default function JourneyDetailPage() {
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <div className="p-6 border-t theme-border bg-gray-900/20">
+                    <div className="p-6 border-t border-gray-700 bg-gray-900/20">
                       {/* Info Grid */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div className="theme-card p-3 rounded-lg border theme-border">
-                          <p className="text-xs theme-text-secondary mb-1">Landing Page</p>
-                          <p className="theme-text text-sm truncate" title={journey.landingPage}>
+                        <div className="bg-gray-800 p-3 rounded-lg border border-gray-700">
+                          <p className="text-xs text-gray-400 mb-1">Landing Page</p>
+                          <p className="text-gray-200 text-sm truncate" title={journey.landingPage}>
                             {journey.landingPage}
                           </p>
                         </div>
-                        <div className="theme-card p-3 rounded-lg border theme-border">
-                          <p className="text-xs theme-text-secondary mb-1">Referrer</p>
-                          <p className="theme-text text-sm truncate" title={journey.referrer}>
+                        <div className="bg-gray-800 p-3 rounded-lg border border-gray-700">
+                          <p className="text-xs text-gray-400 mb-1">Referrer</p>
+                          <p className="text-gray-200 text-sm truncate" title={journey.referrer}>
                             {journey.referrer || "Direct"}
                           </p>
                         </div>
-                        <div className="theme-card p-3 rounded-lg border theme-border">
-                          <p className="text-xs theme-text-secondary mb-1">Location (IP)</p>
-                          <p className="theme-text text-sm">{journey.location?.ip || "Unknown"}</p>
+                        <div className="bg-gray-800 p-3 rounded-lg border border-gray-700">
+                          <p className="text-xs text-gray-400 mb-1">Location (IP)</p>
+                          <p className="text-gray-200 text-sm">
+                            {journey.location?.ip || "Unknown"}
+                          </p>
                         </div>
                       </div>
 
                       {/* Timeline */}
                       <div>
-                        <h3 className="text-sm font-bold theme-text mb-4 flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-gray-200 mb-4 flex items-center gap-2">
                           <Activity className="w-4 h-4" /> Activity Timeline
                         </h3>
                         <div className="space-y-4 relative pl-2">
@@ -277,22 +288,21 @@ export default function JourneyDetailPage() {
                                     <div
                                       className={`z-10 w-4 h-4 mt-1 rounded-full border-2 border-gray-900 ${sectionColors[event.sectionId] || "bg-gray-500"}`}
                                     />
-                                    <div className="flex-1 theme-card p-3 rounded-lg border theme-border bg-gray-800/40">
+                                    <div className="flex-1 bg-gray-800 p-3 rounded-lg border border-gray-700 bg-gray-800/40">
                                       <div className="flex justify-between items-start">
                                         <div>
-                                          <p className="theme-text font-medium text-sm capitalize">
+                                          <p className="text-gray-200 font-medium text-sm capitalize">
                                             {event.sectionId} Section
                                           </p>
-                                          <p className="theme-text-secondary text-xs">
-                                            Viewed at{" "}
-                                            {new Date(event.viewedAt).toLocaleTimeString()}
+                                          <p className="text-gray-400 text-xs">
+                                            Viewed at {formatDate(event.viewedAt)}
                                           </p>
                                         </div>
                                         <div className="text-right">
-                                          <p className="theme-text text-sm">
+                                          <p className="text-gray-200 text-sm">
                                             {formatDuration(event.duration)}
                                           </p>
-                                          <p className="theme-text-secondary text-xs">
+                                          <p className="text-gray-400 text-xs">
                                             {event.scrollDepth}% scroll
                                           </p>
                                         </div>
@@ -317,15 +327,15 @@ export default function JourneyDetailPage() {
                                     <div className="z-10 w-4 h-4 mt-1 rounded-full border-2 border-gray-900 bg-white flex items-center justify-center">
                                       <div className="w-2 h-2 rounded-full bg-blue-600"></div>
                                     </div>
-                                    <div className="flex-1 theme-card p-3 rounded-lg border theme-border bg-blue-900/10">
+                                    <div className="flex-1 bg-blue-900/10 p-3 rounded-lg border border-blue-900/20">
                                       <div className="flex justify-between items-start">
                                         <div className="w-full">
-                                          <p className="theme-text font-medium text-sm text-blue-300 capitalize">
+                                          <p className="text-blue-300 font-medium text-sm capitalize">
                                             {action.type === "click" ? "Clicked" : action.type}{" "}
                                             {action.metadata?.label || action.target}
                                           </p>
-                                          <p className="theme-text-secondary text-xs mb-1">
-                                            At {new Date(action.timestamp).toLocaleTimeString()}
+                                          <p className="text-blue-400/60 text-xs mb-1">
+                                            At {formatDate(action.timestamp)}
                                           </p>
 
                                           {/* Render Metadata if present */}

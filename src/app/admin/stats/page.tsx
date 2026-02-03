@@ -93,17 +93,6 @@ export default function StatsPage() {
           </div>
         ) : (
           <>
-            <div className="flex justify-end">
-              <button
-                onClick={handleRefreshStats}
-                disabled={refreshingStats}
-                className="p-2 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-lg border border-gray-700 transition-all disabled:opacity-50"
-                title="Refresh Data"
-              >
-                <RefreshCcw className={`w-5 h-5 ${refreshingStats ? "animate-spin" : ""}`} />
-              </button>
-            </div>
-
             {/* Key Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">

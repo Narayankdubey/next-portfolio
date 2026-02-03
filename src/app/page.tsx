@@ -39,7 +39,6 @@ import FeatureFlagsDebugger from "@/components/FeatureFlagsDebugger";
 import FeatureFlagsSettings from "@/components/FeatureFlagsSettings";
 // Removed static import; data will be fetched from API
 
-import { useResume } from "@/hooks/useResume";
 import { usePortfolio } from "@/context/PortfolioContext";
 import { useAnalytics } from "@/context/AnalyticsContext";
 
@@ -59,7 +58,6 @@ export default function Home() {
   const { toggleTheme } = useTheme();
   const flags = useFeatureFlags();
   const portfolio = usePortfolio();
-  const { handleDownload } = useResume();
   const { trackAction } = useAnalytics();
 
   // Global keyboard shortcut for search
@@ -177,10 +175,10 @@ export default function Home() {
       <FeatureFlagsDebugger />
 
       {/* Onboarding Tour */}
-      <OnboardingTour onOpenChatbot={() => setChatbotOpen(true)} />
+      {/* <OnboardingTour onOpenChatbot={() => setChatbotOpen(true)} /> */}
 
       {/* Welcome Modal */}
-      <WelcomeModal />
+      {/* <WelcomeModal /> */}
 
       {/* Enhancement Components */}
       <ScrollProgress />
@@ -227,7 +225,6 @@ export default function Home() {
               onToggleChatbot={() => setChatbotOpen(!chatbotOpen)}
               onToggleMusic={() => setMusicPlayerOpen(!musicPlayerOpen)}
               onToggleTheme={handleThemeToggle}
-              onDownloadResume={handleDownload}
               onTriggerGame={handleTriggerGame}
               onTriggerSurprise={handleTriggerSurprise}
               onToggleSettings={() => setFeatureFlagsSettingsOpen(true)}

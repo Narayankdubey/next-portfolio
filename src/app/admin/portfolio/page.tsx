@@ -45,6 +45,7 @@ interface PortfolioData {
     bio?: string[];
   };
   skills?: SkillsData;
+  resumeUrl?: string;
   [key: string]: any;
 }
 
@@ -345,6 +346,18 @@ export default function PortfolioEditor() {
                   className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
                 />
               </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm text-gray-400 mb-2">
+                  Resume URL (Google Drive PDF Link)
+                </label>
+                <input
+                  type="url"
+                  value={data.resumeUrl || ""}
+                  onChange={(e) => setData({ ...data, resumeUrl: e.target.value })}
+                  placeholder="https://drive.google.com/file/d/YOUR_FILE_ID/view"
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
             </div>
           </div>
 
@@ -423,8 +436,11 @@ export default function PortfolioEditor() {
                 <h3 className="text-sm font-semibold text-white mb-2">Complex Data Structures</h3>
                 <p className="text-xs text-gray-400 leading-relaxed">
                   For editing complex data like <strong>Experience</strong>,{" "}
-                  <strong>Projects</strong>, <strong>Education</strong>,<strong> Awards</strong>,{" "}
-                  <strong>Testimonials</strong>, and <strong>Achievements</strong>, please use the{" "}
+                  <strong>Projects</strong> (including{" "}
+                  <strong className="text-green-400">Play Store</strong> &{" "}
+                  <strong className="text-blue-400">App Store URLs</strong>),{" "}
+                  <strong>Education</strong>, <strong>Awards</strong>, <strong>Testimonials</strong>
+                  , and <strong>Achievements</strong>, please use the{" "}
                   <strong className="text-blue-400">JSON Editor</strong> mode. The JSON mode
                   provides full control over nested arrays and objects.
                 </p>

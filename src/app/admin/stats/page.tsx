@@ -147,29 +147,47 @@ export default function StatsPage() {
               Detailed traffic insights and user journeys
             </p>
           </div>
-          <div className="flex bg-gray-800 p-1 rounded-lg border border-gray-700">
+          <div className="flex items-center gap-4">
             <button
-              onClick={() => setActiveTab("stats")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                activeTab === "stats"
-                  ? "bg-blue-600 text-white shadow-lg"
-                  : "text-gray-400 hover:text-white hover:bg-gray-700"
-              }`}
+              onClick={() => {
+                if (activeTab === "stats") {
+                  handleRefreshStats();
+                } else {
+                  fetchJourneys();
+                }
+              }}
+              disabled={refreshingStats || loadingJourneys}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
             >
-              <BarChart3 className="w-4 h-4" />
-              Visitor Stats
+              <RefreshCcw
+                className={`w-4 h-4 ${refreshingStats || loadingJourneys ? "animate-spin" : ""}`}
+              />
+              {refreshingStats || loadingJourneys ? "Refreshing..." : "Refresh"}
             </button>
-            <button
-              onClick={() => setActiveTab("journeys")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                activeTab === "journeys"
-                  ? "bg-blue-600 text-white shadow-lg"
-                  : "text-gray-400 hover:text-white hover:bg-gray-700"
-              }`}
-            >
-              <Activity className="w-4 h-4" />
-              User Journeys
-            </button>
+            <div className="flex bg-gray-800 p-1 rounded-lg border border-gray-700">
+              <button
+                onClick={() => setActiveTab("stats")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  activeTab === "stats"
+                    ? "bg-blue-600 text-white shadow-lg"
+                    : "text-gray-400 hover:text-white hover:bg-gray-700"
+                }`}
+              >
+                <BarChart3 className="w-4 h-4" />
+                Visitor Stats
+              </button>
+              <button
+                onClick={() => setActiveTab("journeys")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  activeTab === "journeys"
+                    ? "bg-blue-600 text-white shadow-lg"
+                    : "text-gray-400 hover:text-white hover:bg-gray-700"
+                }`}
+              >
+                <Activity className="w-4 h-4" />
+                User Journeys
+              </button>
+            </div>
           </div>
         </div>
       </div>

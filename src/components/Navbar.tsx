@@ -10,7 +10,6 @@ import { motion } from "framer-motion";
 import { usePortfolio } from "@/context/PortfolioContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useSound } from "@/context/SoundContext";
-import { useResume } from "@/hooks/useResume";
 import { useAnalytics } from "@/context/AnalyticsContext";
 
 const allNavItems = [
@@ -28,7 +27,6 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { playHover, playClick } = useSound();
-  const { handleDownload, isGenerating } = useResume();
   const portfolio = usePortfolio();
   const pathname = usePathname();
   const flags = useFeatureFlags();
@@ -131,19 +129,24 @@ export default function Navbar() {
                 {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </motion.button>
             )}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                handleDownload();
-                trackAction("click", "resume-download");
-              }}
-              disabled={isGenerating}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full text-sm font-medium disabled:opacity-50 text-white cursor-pointer"
-            >
-              <Download className="w-4 h-4" />
-              {isGenerating ? "Generating..." : "Resume"}
-            </motion.button>
+            {portfolio?.resumeUrl && (
+              <motion.a
+                href={portfolio.resumeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  playClick();
+                  trackAction("click", "resume-download");
+                }}
+                onMouseEnter={playHover}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all"
+              >
+                <Download className="w-4 h-4" />
+                Resume
+              </motion.a>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -185,17 +188,22 @@ export default function Navbar() {
                 </button>
               )}
 
-              <button
-                onClick={() => {
-                  handleDownload();
-                  setIsOpen(false);
-                }}
-                disabled={isGenerating}
-                className="flex-1 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full text-sm font-medium justify-center disabled:opacity-50"
-              >
-                <Download className="w-4 h-4" />
-                {isGenerating ? "Generating..." : "Resume"}
-              </button>
+              {portfolio?.resumeUrl && (
+                <a
+                  href={portfolio.resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    playClick();
+                    trackAction("click", "resume-download");
+                    setIsOpen(false);
+                  }}
+                  className="flex-1 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full text-sm font-medium justify-center text-white"
+                >
+                  <Download className="w-4 h-4" />
+                  Resume
+                </a>
+              )}
             </div>
           </motion.div>
         )}

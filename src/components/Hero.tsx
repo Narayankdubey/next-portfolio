@@ -36,7 +36,6 @@ interface HeroProps {
   onToggleChatbot: () => void;
   onToggleMusic: () => void;
   onToggleTheme: () => void;
-  onDownloadResume: () => void;
   onTriggerGame: () => void;
   onTriggerSurprise: () => void;
   onToggleSettings?: () => void;
@@ -50,7 +49,6 @@ export default function Hero({
   onToggleChatbot,
   onToggleMusic,
   onToggleTheme,
-  onDownloadResume,
   onTriggerGame,
   onTriggerSurprise,
   onToggleSettings,
@@ -247,9 +245,11 @@ export default function Hero({
                 {
                   name: "Resume",
                   icon: FileText,
-                  onClick: onDownloadResume,
+                  onClick: portfolio.resumeUrl
+                    ? () => window.open(portfolio.resumeUrl, "_blank")
+                    : () => {},
                   gradient: "from-yellow-500 via-orange-500 to-red-500",
-                  enabled: true,
+                  enabled: !!portfolio.resumeUrl,
                 },
                 {
                   name: "Arcade",

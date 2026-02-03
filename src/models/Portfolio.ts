@@ -45,6 +45,8 @@ export interface IProject {
   github: string;
   demo: string;
   color: string;
+  playStoreUrl?: string;
+  appStoreUrl?: string;
 }
 
 export interface IEducation {
@@ -90,6 +92,7 @@ export interface IPortfolio {
   playlist: IPlaylistItem[];
   testimonials: ITestimonial[];
   achievements: IAchievement[];
+  resumeUrl?: string;
   updatedAt?: Date;
 }
 
@@ -154,6 +157,8 @@ const ProjectSchema = new Schema(
     github: { type: String, required: true },
     demo: { type: String, required: true },
     color: { type: String, required: true },
+    playStoreUrl: { type: String },
+    appStoreUrl: { type: String },
   },
   { _id: false }
 );
@@ -215,6 +220,7 @@ const PortfolioSchema = new Schema<IPortfolio>(
     playlist: { type: [PlaylistItemSchema], required: true },
     testimonials: { type: [TestimonialSchema], required: true },
     achievements: { type: [AchievementSchema], required: true },
+    resumeUrl: { type: String },
   },
   {
     timestamps: true,

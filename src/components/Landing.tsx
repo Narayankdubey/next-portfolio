@@ -13,7 +13,6 @@ interface LandingProps {
   onToggleChatbot: () => void;
   onToggleMusic: () => void;
   onToggleTheme: () => void;
-  onDownloadResume: () => void;
   onTriggerGame: () => void;
   onTriggerSurprise: () => void;
   onToggleSettings?: () => void;
@@ -29,7 +28,6 @@ export default function Landing({
   onToggleChatbot,
   onToggleMusic,
   onToggleTheme,
-  onDownloadResume,
   onTriggerGame,
   onTriggerSurprise,
   onToggleSettings,
@@ -53,7 +51,6 @@ export default function Landing({
           onToggleChatbot={onToggleChatbot}
           onToggleMusic={onToggleMusic}
           onToggleTheme={onToggleTheme}
-          onDownloadResume={onDownloadResume}
           onTriggerGame={onTriggerGame}
           onTriggerSurprise={onTriggerSurprise}
           onToggleSettings={onToggleSettings}

@@ -5,7 +5,20 @@ import { useFeatureFlags } from "@/context/FeatureFlagsContext";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Download, Menu, X, Moon, Sun } from "lucide-react";
+import {
+  Download,
+  Menu,
+  X,
+  Moon,
+  Sun,
+  Home,
+  User,
+  Briefcase,
+  FolderGit2,
+  MessageCircle,
+  Mail,
+  BookOpen,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { usePortfolio } from "@/context/PortfolioContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -13,13 +26,13 @@ import { useSound } from "@/context/SoundContext";
 import { useAnalytics } from "@/context/AnalyticsContext";
 
 const allNavItems = [
-  { name: "Home", href: "#home" },
-  { name: "About", href: "#about" },
-  { name: "Experience", href: "#experience" },
-  { name: "Projects", href: "#projects" },
-  { name: "Blog", href: "/blog", requiresFlag: "blog" as const },
-  { name: "Chat", href: "/chat" },
-  { name: "Contact", href: "#contact" },
+  { name: "Home", href: "#home", icon: Home },
+  { name: "About", href: "#about", icon: User },
+  { name: "Experience", href: "#experience", icon: Briefcase },
+  { name: "Projects", href: "#projects", icon: FolderGit2 },
+  { name: "Blog", href: "/blog", requiresFlag: "blog" as const, icon: BookOpen },
+  { name: "Chat", href: "/chat", icon: MessageCircle },
+  { name: "Contact", href: "#contact", icon: Mail },
 ];
 
 export default function Navbar() {
@@ -80,7 +93,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link
             href="/#home"
-            className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
+            className="text-xl font-bold font-mono bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
             onMouseEnter={playHover}
             onClick={() => {
               playClick();
@@ -88,7 +101,7 @@ export default function Navbar() {
             }}
           >
             <motion.span whileHover={{ scale: 1.05 }} className="inline-block">
-              {portfolio?.personal.name}
+              &lt; {portfolio?.personal.name} /&gt;
             </motion.span>
           </Link>
 
@@ -167,7 +180,7 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-2 text-gray-300">
+          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-2 theme-text">
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
@@ -177,18 +190,21 @@ export default function Navbar() {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="md:hidden py-4 space-y-4"
+            className="md:hidden py-4 px-4 theme-navbar"
           >
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href.startsWith("#") && pathname !== "/" ? `/${item.href}` : item.href}
-                onClick={(e) => handleNavClick(e, item)}
-                className="block text-gray-300 hover:text-white transition-colors"
-              >
-                {item.name}
-              </Link>
-            ))}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {navItems.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href.startsWith("#") && pathname !== "/" ? `/${item.href}` : item.href}
+                  onClick={(e) => handleNavClick(e, item)}
+                  className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 theme-text hover:from-blue-500/20 hover:to-purple-500/20 transition-all"
+                >
+                  <item.icon className="w-6 h-6" />
+                  <span className="text-sm font-medium">{item.name}</span>
+                </Link>
+              ))}
+            </div>
 
             <div className="flex gap-3">
               {toggleTheme && (

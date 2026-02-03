@@ -129,24 +129,41 @@ export default function Navbar() {
                 {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </motion.button>
             )}
-            {portfolio?.resumeUrl && (
-              <motion.a
-                href={portfolio.resumeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  playClick();
-                  trackAction("click", "resume-download");
-                }}
-                onMouseEnter={playHover}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all"
-              >
-                <Download className="w-4 h-4" />
-                Resume
-              </motion.a>
-            )}
+            <motion.button
+              onClick={() => {
+                if (!portfolio?.resumeUrl) {
+                  alert("Resume URL not configured. Please contact the admin.");
+                  return;
+                }
+
+                playClick();
+                trackAction("click", "resume-download");
+
+                // Open for viewing in new tab
+                window.open(portfolio.resumeUrl, "_blank");
+
+                // Also trigger download
+                const fileId = portfolio.resumeUrl.match(/\/d\/([^\/]+)/)?.[1];
+                if (fileId) {
+                  const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+                  const link = document.createElement("a");
+                  link.href = downloadUrl;
+                  link.download = "resume.pdf";
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }
+              }}
+              onMouseEnter={playHover}
+              className={`flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all ${
+                !portfolio?.resumeUrl ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+              }`}
+              title={portfolio?.resumeUrl ? "View & Download Resume" : "Resume URL not configured"}
+              disabled={!portfolio?.resumeUrl}
+            >
+              <Download className="w-4 h-4" />
+              Resume
+            </motion.button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -188,22 +205,39 @@ export default function Navbar() {
                 </button>
               )}
 
-              {portfolio?.resumeUrl && (
-                <a
-                  href={portfolio.resumeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => {
-                    playClick();
-                    trackAction("click", "resume-download");
-                    setIsOpen(false);
-                  }}
-                  className="flex-1 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full text-sm font-medium justify-center text-white"
-                >
-                  <Download className="w-4 h-4" />
-                  Resume
-                </a>
-              )}
+              <button
+                onClick={() => {
+                  if (!portfolio?.resumeUrl) {
+                    alert("Resume URL not configured. Please contact the admin.");
+                    return;
+                  }
+
+                  playClick();
+                  trackAction("click", "resume-download");
+                  setIsOpen(false);
+
+                  // Open for viewing in new tab
+                  window.open(portfolio.resumeUrl, "_blank");
+
+                  // Also trigger download
+                  const fileId = portfolio.resumeUrl.match(/\/d\/([^\/]+)/)?.[1];
+                  if (fileId) {
+                    const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+                    const link = document.createElement("a");
+                    link.href = downloadUrl;
+                    link.download = "resume.pdf";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }
+                }}
+                className={`flex-1 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full text-sm font-medium justify-center text-white ${
+                  !portfolio?.resumeUrl ? "opacity-50" : ""
+                }`}
+              >
+                <Download className="w-4 h-4" />
+                Resume
+              </button>
             </div>
           </motion.div>
         )}

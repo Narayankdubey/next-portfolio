@@ -110,6 +110,9 @@ export default function PortfolioEditor() {
         setCode(JSON.stringify(data, null, 2));
       }
 
+      console.log("[Admin Portfolio] Saving data:", dataToSave);
+      console.log("[Admin Portfolio] resumeUrl:", dataToSave.resumeUrl);
+
       // NOTE: Placeholder fetch calls, replace with actual API endpoint
       const res = await fetch("/api/admin/portfolio", {
         method: "PUT",

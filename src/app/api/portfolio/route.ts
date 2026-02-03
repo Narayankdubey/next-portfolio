@@ -29,7 +29,8 @@ export async function GET() {
       },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+          // Cache for 5 minutes, allow stale content for 1 hour while revalidating
+          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
         },
       }
     );

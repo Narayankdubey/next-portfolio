@@ -246,10 +246,25 @@ export default function Hero({
                   name: "Resume",
                   icon: FileText,
                   onClick: portfolio.resumeUrl
-                    ? () => window.open(portfolio.resumeUrl, "_blank")
-                    : () => {},
+                    ? () => {
+                        // Open for viewing in new tab
+                        window.open(portfolio.resumeUrl, "_blank");
+
+                        // Also trigger download
+                        const fileId = portfolio.resumeUrl.match(/\/d\/([^\/]+)/)?.[1];
+                        if (fileId) {
+                          const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+                          const link = document.createElement("a");
+                          link.href = downloadUrl;
+                          link.download = "resume.pdf";
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }
+                      }
+                    : () => alert("Resume URL not configured. Please contact the admin."),
                   gradient: "from-yellow-500 via-orange-500 to-red-500",
-                  enabled: !!portfolio.resumeUrl,
+                  enabled: true,
                 },
                 {
                   name: "Arcade",

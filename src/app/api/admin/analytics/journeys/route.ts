@@ -17,6 +17,10 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const filter = searchParams.get("filter"); // 'today', 'week', 'month'
     const search = searchParams.get("search");
+    const deviceType = searchParams.get("deviceType");
+    const os = searchParams.get("os");
+    const browser = searchParams.get("browser");
+    const interaction = searchParams.get("interaction");
 
     const skip = (page - 1) * limit;
 
@@ -45,6 +49,24 @@ export async function GET(request: NextRequest) {
       matchStage.startTime = { $gte: startDate };
     }
 
+    // Additional filters
+    if (deviceType && deviceType !== "all") matchStage["device.type"] = deviceType;
+    if (os && os !== "all") matchStage["device.os"] = os;
+    if (browser && browser !== "all") matchStage["device.browser"] = browser;
+
+    // Interaction filter (searches events and actions)
+    if (interaction) {
+      matchStage.$and = matchStage.$and || [];
+      matchStage.$and.push({
+        $or: [
+          { "events.sectionId": { $regex: interaction, $options: "i" } },
+          { "actions.target": { $regex: interaction, $options: "i" } },
+          { "actions.type": { $regex: interaction, $options: "i" } },
+          { "actions.metadata.label": { $regex: interaction, $options: "i" } },
+        ],
+      });
+    }
+
     // Search filter
     if (search) {
       matchStage.$or = [
@@ -56,22 +78,25 @@ export async function GET(request: NextRequest) {
 
     const pipeline: any[] = [
       { $match: matchStage },
-      { $sort: { startTime: -1 } },
+      { $sort: { updatedAt: -1 } },
       {
         $group: {
           _id: "$visitorId",
           visitorId: { $first: "$visitorId" },
-          latestSessionId: { $first: "$sessionId" },
-          lastActive: { $first: "$startTime" },
+          sessionId: { $first: "$sessionId" },
+          startTime: { $first: "$startTime" },
+          updatedAt: { $first: "$updatedAt" },
+          endTime: { $first: "$endTime" },
           firstSeen: { $last: "$startTime" },
           totalSessions: { $sum: 1 },
           landingPage: { $first: "$landingPage" },
           device: { $first: "$device" },
           referrer: { $first: "$referrer" },
+          events: { $first: "$events" },
           totalDuration: { $sum: "$totalDuration" },
         },
       },
-      { $sort: { lastActive: -1 } },
+      { $sort: { updatedAt: -1 } },
       { $skip: skip },
       { $limit: limit },
     ];
@@ -83,12 +108,36 @@ export async function GET(request: NextRequest) {
       { $count: "total" },
     ];
 
-    const [journeys, countResult] = await Promise.all([
+    const statsPipeline = [
+      { $match: matchStage },
+      {
+        $group: {
+          _id: null,
+          totalSessions: { $sum: 1 },
+          totalDuration: { $sum: "$totalDuration" },
+          totalEvents: {
+            $sum: {
+              $add: [
+                { $size: { $ifNull: ["$events", []] } },
+                { $size: { $ifNull: ["$actions", []] } },
+              ],
+            },
+          },
+        },
+      },
+    ];
+
+    const [journeys, countResult, statsResult] = await Promise.all([
       UserJourney.aggregate(pipeline),
       UserJourney.aggregate(countPipeline),
+      UserJourney.aggregate(statsPipeline),
     ]);
 
     const total = countResult.length > 0 ? countResult[0].total : 0;
+    const stats =
+      statsResult.length > 0
+        ? statsResult[0]
+        : { totalSessions: 0, totalDuration: 0, totalEvents: 0 };
 
     return NextResponse.json({
       journeys,
@@ -98,6 +147,7 @@ export async function GET(request: NextRequest) {
         limit,
         pages: Math.ceil(total / limit),
       },
+      stats,
     });
   } catch (error) {
     console.error("Get journeys error:", error);

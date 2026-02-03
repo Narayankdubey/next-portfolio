@@ -43,6 +43,7 @@ interface Journey {
     type: string;
     os: string;
     browser: string;
+    deviceName: string;
   };
   location?: {
     country?: string;
@@ -121,8 +122,8 @@ export default function JourneyDetailPage() {
 
   if (!journeys || journeys.length === 0) {
     return (
-      <div className="min-h-screen theme-bg flex items-center justify-center">
-        <div className="theme-text">Visitor not found or no sessions recorded.</div>
+      <div className="flex items-center justify-center h-96">
+        <div className="text-gray-400">Visitor not found or no sessions recorded.</div>
       </div>
     );
   }
@@ -130,13 +131,13 @@ export default function JourneyDetailPage() {
   const latestJourney = journeys[0];
 
   return (
-    <div className="min-h-screen theme-bg p-6">
+    <div className="space-y-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <Link
-              href="/admin/stats"
+              href="/admin/analytics"
               className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -189,7 +190,7 @@ export default function JourneyDetailPage() {
                   <div className="flex items-center gap-2">
                     <Monitor className="w-4 h-4 text-purple-400" />
                     <span className="theme-text-secondary text-sm">
-                      {journey.device.type} ({journey.device.browser})
+                      {journey.device.deviceName || journey.device.type} ({journey.device.browser})
                     </span>
                   </div>
                   <div className="flex items-center gap-2">

@@ -13,6 +13,7 @@ export interface IDeviceInfo {
   type: "mobile" | "tablet" | "desktop";
   os: string;
   browser: string;
+  deviceName: string;
 }
 
 export interface ILocationInfo {
@@ -81,6 +82,7 @@ const DeviceInfoSchema = new Schema<IDeviceInfo>(
     },
     os: { type: String, required: true },
     browser: { type: String, required: true },
+    deviceName: { type: String, required: true, default: "Unknown Device" },
   },
   { _id: false }
 );

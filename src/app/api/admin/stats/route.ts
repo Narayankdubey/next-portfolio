@@ -89,6 +89,69 @@ export async function GET() {
       .limit(5)
       .select("name email message createdAt status");
 
+    // Device Name Stats
+    const deviceNameStats = await UserJourney.aggregate([
+      {
+        $group: {
+          _id: { $ifNull: ["$device.deviceName", "Unknown"] },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { count: -1 } },
+      { $limit: 8 },
+    ]);
+
+    // Top Sections (Events)
+    const eventStats = await UserJourney.aggregate([
+      { $unwind: "$events" },
+      {
+        $group: {
+          _id: "$events.sectionId",
+          count: { $sum: 1 },
+          avgDuration: { $avg: "$events.duration" },
+        },
+      },
+      { $sort: { count: -1 } },
+      { $limit: 8 },
+    ]);
+
+    // Blog Page Stats
+    const blogStats = await UserJourney.aggregate([
+      {
+        $match: {
+          landingPage: { $regex: /^\/blog/ },
+        },
+      },
+      {
+        $group: {
+          _id: "$landingPage",
+          visits: { $sum: 1 },
+          avgTime: { $avg: "$totalDuration" },
+          totalTime: { $sum: "$totalDuration" },
+        },
+      },
+      { $sort: { totalTime: -1 } },
+      { $limit: 10 },
+    ]);
+
+    // Top Clicks
+    const clickStats = await UserJourney.aggregate([
+      { $unwind: "$actions" },
+      { $match: { "actions.type": "click" } },
+      { $group: { _id: "$actions.target", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 },
+    ]);
+
+    // Top Input Changes
+    const inputStats = await UserJourney.aggregate([
+      { $unwind: "$actions" },
+      { $match: { "actions.type": { $in: ["change", "input"] } } },
+      { $group: { _id: "$actions.target", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 },
+    ]);
+
     return NextResponse.json({
       totalVisits,
       uniqueVisitors,
@@ -97,6 +160,11 @@ export async function GET() {
       visitsByDay,
       browserStats,
       osStats,
+      deviceNameStats,
+      eventStats,
+      blogStats,
+      clickStats,
+      inputStats,
       recentMessages,
     });
   } catch (error) {

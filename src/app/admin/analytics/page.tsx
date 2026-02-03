@@ -11,6 +11,7 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  RefreshCcw,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -24,6 +25,7 @@ interface Journey {
     type: string;
     os: string;
     browser: string;
+    deviceName?: string;
   };
   startTime: string;
   endTime?: string;
@@ -39,6 +41,7 @@ interface Journey {
 export default function AnalyticsPage() {
   const [journeys, setJourneys] = useState<Journey[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState("week");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -84,17 +87,34 @@ export default function AnalyticsPage() {
     return `${seconds}s`;
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchJourneys();
+    setTimeout(() => setRefreshing(false), 500);
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
 
   return (
-    <div className="min-h-screen theme-bg p-6">
+    <div className="space-y-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold theme-text mb-2">User Journey Analytics</h1>
-          <p className="theme-text-secondary">Track visitor behavior and section impressions</p>
+        {/* Header */}
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-bold theme-text mb-2">User Journey Analytics</h1>
+            <p className="theme-text-secondary">Track visitor behavior and section impressions</p>
+          </div>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing || loading}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+          >
+            <RefreshCcw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+            {refreshing ? "Refreshing..." : "Refresh"}
+          </button>
         </div>
 
         {/* Stats Cards */}
@@ -195,16 +215,18 @@ export default function AnalyticsPage() {
                     >
                       <td className="px-6 py-4">
                         <Link
-                          href={`/admin/analytics/${journey.sessionId}`}
+                          href={`/admin/analytics/${journey.visitorId || journey.sessionId}`}
                           className="text-blue-400 hover:text-blue-300 font-mono text-sm"
                         >
-                          {journey.sessionId.substring(0, 12)}...
+                          {(journey.sessionId || journey.visitorId || "").substring(0, 12)}...
                         </Link>
                       </td>
                       <td className="px-6 py-4 theme-text text-sm">{journey.landingPage}</td>
                       <td className="px-6 py-4">
                         <div className="text-sm">
-                          <div className="theme-text">{journey.device.type}</div>
+                          <div className="theme-text capitalize">
+                            {journey.device.deviceName || journey.device.type}
+                          </div>
                           <div className="theme-text-secondary text-xs">
                             {journey.device.os} / {journey.device.browser}
                           </div>
@@ -212,7 +234,7 @@ export default function AnalyticsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-1 flex-wrap">
-                          {journey.events.map((event, idx) => (
+                          {(journey.events || []).map((event, idx) => (
                             <span
                               key={idx}
                               className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs"

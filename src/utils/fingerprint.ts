@@ -87,6 +87,7 @@ export function parseUserAgent(userAgent: string): {
   type: "mobile" | "tablet" | "desktop";
   os: string;
   browser: string;
+  deviceName: string;
 } {
   const ua = userAgent.toLowerCase();
 
@@ -118,7 +119,83 @@ export function parseUserAgent(userAgent: string): {
   else if (ua.includes("firefox")) browser = "Firefox";
   else if (ua.includes("opera") || ua.includes("opr")) browser = "Opera";
 
-  return { type, os, browser };
+  // Detect specific device model
+  let deviceName = "Unknown Device";
+
+  // Apple devices
+  if (ua.includes("macintosh")) {
+    if (ua.includes("arm")) {
+      deviceName = "MacBook (Apple Silicon)";
+    } else {
+      deviceName = "MacBook";
+    }
+    // More specific Mac models
+    if (ua.includes("mac")) deviceName = "Mac";
+  } else if (ua.includes("iphone")) {
+    // Extract iPhone model
+    const iphoneMatch = userAgent.match(/iPhone(\d{1,2}[,_]\d)/i);
+    if (iphoneMatch) {
+      deviceName = `iPhone ${iphoneMatch[1].replace(/[,_]/, ".")}`;
+    } else if (ua.includes("iphone")) {
+      deviceName = "iPhone";
+    }
+  } else if (ua.includes("ipad")) {
+    deviceName = "iPad";
+  }
+  // Android devices
+  else if (ua.includes("android")) {
+    // Samsung
+    if (ua.includes("samsung") || ua.includes("sm-")) {
+      const samsungMatch = userAgent.match(/SM-([A-Z0-9]+)/i);
+      if (samsungMatch) {
+        deviceName = `Samsung ${samsungMatch[1]}`;
+      } else {
+        deviceName = "Samsung";
+      }
+    }
+    // Google Pixel
+    else if (ua.includes("pixel")) {
+      const pixelMatch = userAgent.match(/Pixel (\d+[a-z]*)/i);
+      if (pixelMatch) {
+        deviceName = `Google Pixel ${pixelMatch[1]}`;
+      } else {
+        deviceName = "Google Pixel";
+      }
+    }
+    // OnePlus
+    else if (ua.includes("oneplus")) {
+      const oneplusMatch = userAgent.match(/ONEPLUS ([A-Z0-9]+)/i);
+      if (oneplusMatch) {
+        deviceName = `OnePlus ${oneplusMatch[1]}`;
+      } else {
+        deviceName = "OnePlus";
+      }
+    }
+    // Xiaomi
+    else if (ua.includes("mi ") || ua.includes("redmi")) {
+      if (ua.includes("redmi")) {
+        deviceName = "Xiaomi Redmi";
+      } else {
+        deviceName = "Xiaomi";
+      }
+    } else {
+      deviceName = "Android Device";
+    }
+  }
+  // Windows devices
+  else if (ua.includes("windows")) {
+    if (ua.includes("surface")) {
+      deviceName = "Microsoft Surface";
+    } else {
+      deviceName = "Windows PC";
+    }
+  }
+  // Linux
+  else if (ua.includes("linux")) {
+    deviceName = "Linux PC";
+  }
+
+  return { type, os, browser, deviceName };
 }
 
 /**

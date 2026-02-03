@@ -36,6 +36,9 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
       // Prevent double initialization in strict mode or race conditions
       if (initializationPromise.current) return;
 
+      // Don't track admin pages
+      if (window.location.pathname.startsWith("/admin")) return;
+
       let resolveInit: () => void;
       initializationPromise.current = new Promise((resolve) => {
         resolveInit = resolve;

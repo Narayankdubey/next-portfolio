@@ -21,6 +21,8 @@ export async function GET(request: NextRequest) {
     const os = searchParams.get("os");
     const browser = searchParams.get("browser");
     const interaction = searchParams.get("interaction");
+    const sortField = searchParams.get("sortField") || "updatedAt";
+    const sortOrder = searchParams.get("sortOrder") || "desc";
 
     const skip = (page - 1) * limit;
 
@@ -96,7 +98,7 @@ export async function GET(request: NextRequest) {
           totalDuration: { $sum: "$totalDuration" },
         },
       },
-      { $sort: { updatedAt: -1 } },
+      { $sort: { [sortField]: sortOrder === "asc" ? 1 : -1 } },
       { $skip: skip },
       { $limit: limit },
     ];

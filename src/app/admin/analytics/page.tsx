@@ -14,6 +14,9 @@ import {
   RefreshCcw,
   MousePointerClick,
   Filter,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -49,6 +52,8 @@ export default function AnalyticsPage() {
   const [filter, setFilter] = useState("week");
   const [search, setSearch] = useState("");
   const [interaction, setInteraction] = useState("");
+  const [sortField, setSortField] = useState("updatedAt");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [deviceType, setDeviceType] = useState("all");
   const [os, setOs] = useState("all");
   const [browser, setBrowser] = useState("all");
@@ -65,7 +70,7 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     fetchJourneys();
-  }, [filter, page, search, deviceType, os, browser, interaction]);
+  }, [filter, page, search, deviceType, os, browser, interaction, sortField, sortOrder]);
 
   const fetchJourneys = async () => {
     try {
@@ -79,6 +84,8 @@ export default function AnalyticsPage() {
         ...(os !== "all" && { os }),
         ...(browser !== "all" && { browser }),
         ...(interaction && { interaction }),
+        sortField,
+        sortOrder,
       });
 
       const response = await fetch(`/api/admin/analytics/journeys?${params}`);
@@ -327,17 +334,101 @@ export default function AnalyticsPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Landing Page
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Device
+                  <th
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-white group"
+                    onClick={() => {
+                      if (sortField === "device.type") {
+                        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                      } else {
+                        setSortField("device.type");
+                        setSortOrder("desc");
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-1">
+                      Device
+                      {sortField === "device.type" ? (
+                        sortOrder === "asc" ? (
+                          <ArrowUp className="w-3 h-3 text-blue-400" />
+                        ) : (
+                          <ArrowDown className="w-3 h-3 text-blue-400" />
+                        )
+                      ) : (
+                        <ArrowUpDown className="w-3 h-3 text-gray-600 opacity-0 group-hover:opacity-100" />
+                      )}
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Total Sessions
+                  <th
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-white group"
+                    onClick={() => {
+                      if (sortField === "totalSessions") {
+                        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                      } else {
+                        setSortField("totalSessions");
+                        setSortOrder("desc");
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-1">
+                      Total Sessions
+                      {sortField === "totalSessions" ? (
+                        sortOrder === "asc" ? (
+                          <ArrowUp className="w-3 h-3 text-blue-400" />
+                        ) : (
+                          <ArrowDown className="w-3 h-3 text-blue-400" />
+                        )
+                      ) : (
+                        <ArrowUpDown className="w-3 h-3 text-gray-600 opacity-0 group-hover:opacity-100" />
+                      )}
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Duration
+                  <th
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-white group"
+                    onClick={() => {
+                      if (sortField === "totalDuration") {
+                        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                      } else {
+                        setSortField("totalDuration");
+                        setSortOrder("desc");
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-1">
+                      Duration
+                      {sortField === "totalDuration" ? (
+                        sortOrder === "asc" ? (
+                          <ArrowUp className="w-3 h-3 text-blue-400" />
+                        ) : (
+                          <ArrowDown className="w-3 h-3 text-blue-400" />
+                        )
+                      ) : (
+                        <ArrowUpDown className="w-3 h-3 text-gray-600 opacity-0 group-hover:opacity-100" />
+                      )}
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Last Active
+                  <th
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-white group"
+                    onClick={() => {
+                      if (sortField === "updatedAt") {
+                        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                      } else {
+                        setSortField("updatedAt");
+                        setSortOrder("desc");
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-1">
+                      Last Active
+                      {sortField === "updatedAt" ? (
+                        sortOrder === "asc" ? (
+                          <ArrowUp className="w-3 h-3 text-blue-400" />
+                        ) : (
+                          <ArrowDown className="w-3 h-3 text-blue-400" />
+                        )
+                      ) : (
+                        <ArrowUpDown className="w-3 h-3 text-gray-600 opacity-0 group-hover:opacity-100" />
+                      )}
+                    </div>
                   </th>
                 </tr>
               </thead>

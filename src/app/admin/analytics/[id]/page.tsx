@@ -13,9 +13,11 @@ import {
   ChevronDown,
   ChevronUp,
   RefreshCw,
+  Download,
 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { generatePDF } from "@/lib/pdfUtils";
 
 interface SectionImpression {
   sectionId: string;
@@ -76,6 +78,8 @@ export default function JourneyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [openSessionMenu, setOpenSessionMenu] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -145,8 +149,98 @@ export default function JourneyDetailPage() {
 
   const latestJourney = journeys[0];
 
+  const handleExportCsv = async () => {
+    try {
+      setRefreshing(true);
+      const params = new URLSearchParams({
+        search: latestJourney.visitorId, // Use visitorId for search to get their sessions
+        type: "sessions",
+      });
+
+      const response = await fetch(`/api/admin/analytics/export?${params}`);
+      if (!response.ok) throw new Error("Export failed");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `visitor-${latestJourney.visitorId}-${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Export CSV error:", error);
+      alert("Failed to export CSV");
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    try {
+      setRefreshing(true); // Re-use refreshing state for loading indicator
+      await generatePDF("visitor-details-container", `visitor-${latestJourney.visitorId}.pdf`);
+    } catch (error: any) {
+      console.error("Export PDF error:", error);
+      alert(`Failed to export PDF: ${error.message}`);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleExportSessionCsv = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent toggling the accordion
+    try {
+      setRefreshing(true);
+      const params = new URLSearchParams({
+        search: sessionId,
+        type: "events",
+      });
+
+      const response = await fetch(`/api/admin/analytics/export?${params}`);
+      if (!response.ok) throw new Error("Export failed");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `session-${sessionId}-${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Export Session CSV error:", error);
+      alert("Failed to export session CSV");
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleExportSessionPdf = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      setRefreshing(true);
+
+      // Auto-expand if collapsed
+      if (expandedSession !== sessionId) {
+        setExpandedSession(sessionId);
+        // Wait for animation to complete (approx 300ms + buffer)
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
+      await generatePDF(`session-${sessionId}`, `session-${sessionId}.pdf`);
+    } catch (error: any) {
+      console.error("Export Session PDF error:", error);
+      alert(`Failed to export Session PDF: ${error.message}`);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" id="visitor-details-container">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -158,14 +252,46 @@ export default function JourneyDetailPage() {
               <ArrowLeft className="w-4 h-4" />
               Back to Analytics
             </Link>
-            <button
-              onClick={fetchJourneys}
-              disabled={refreshing}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-            >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
-              {refreshing ? "Refreshing..." : "Refresh"}
-            </button>
+            <div className="flex gap-2" data-html2canvas-ignore>
+              <div className="relative">
+                <button
+                  onClick={() => setShowExportMenu(!showExportMenu)}
+                  disabled={refreshing}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                  onBlur={() => setTimeout(() => setShowExportMenu(false), 200)}
+                >
+                  <Download className={`w-4 h-4 ${refreshing ? "animate-bounce" : ""}`} />
+                  Export
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform ${showExportMenu ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {showExportMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+                    <button
+                      onClick={handleExportCsv}
+                      className="w-full px-4 py-3 text-left text-gray-200 hover:bg-gray-700 flex items-center gap-2 text-sm transition-colors"
+                    >
+                      <span className="font-medium">Export CSV</span>
+                    </button>
+                    <button
+                      onClick={handleExportPdf}
+                      className="w-full px-4 py-3 text-left text-gray-200 hover:bg-gray-700 flex items-center gap-2 text-sm transition-colors border-t border-gray-700"
+                    >
+                      <span className="font-medium">Export PDF</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={fetchJourneys}
+                disabled={refreshing}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              >
+                <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+                {refreshing ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Visitor Details</h1>
           <div className="flex items-center gap-4 text-sm text-gray-400 font-mono">
@@ -182,6 +308,7 @@ export default function JourneyDetailPage() {
           {journeys.map((journey) => (
             <div
               key={journey.sessionId}
+              id={`session-${journey.sessionId}`} // ID for PDF capture
               className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden"
             >
               {/* Session Header */}
@@ -216,6 +343,38 @@ export default function JourneyDetailPage() {
                     <span className="text-gray-400 text-sm px-2 py-0.5 bg-gray-700 rounded">
                       {journey.events.length} interactions
                     </span>
+                    <div className="flex gap-1 relative" data-html2canvas-ignore>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenSessionMenu(
+                            openSessionMenu === journey.sessionId ? null : journey.sessionId
+                          );
+                        }}
+                        className="p-1 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition-colors"
+                        title="Export Options"
+                        onBlur={() => setTimeout(() => setOpenSessionMenu(null), 200)}
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+
+                      {openSessionMenu === journey.sessionId && (
+                        <div className="absolute right-0 top-full mt-2 w-40 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 overflow-hidden">
+                          <button
+                            onClick={(e) => handleExportSessionCsv(journey.sessionId, e)}
+                            className="w-full px-3 py-2 text-left text-gray-200 hover:bg-gray-700 flex items-center gap-2 text-xs transition-colors"
+                          >
+                            Export CSV
+                          </button>
+                          <button
+                            onClick={(e) => handleExportSessionPdf(journey.sessionId, e)}
+                            className="w-full px-3 py-2 text-left text-gray-200 hover:bg-gray-700 flex items-center gap-2 text-xs transition-colors border-t border-gray-700"
+                          >
+                            Export PDF
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 {expandedSession === journey.sessionId ? (

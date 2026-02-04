@@ -11,14 +11,17 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   RefreshCcw,
   MousePointerClick,
   Filter,
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
+  Download,
 } from "lucide-react";
 import Link from "next/link";
+import { generatePDF } from "@/lib/pdfUtils";
 
 interface Journey {
   _id: string;
@@ -49,6 +52,9 @@ export default function AnalyticsPage() {
   const [journeys, setJourneys] = useState<Journey[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [exportingCsv, setExportingCsv] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
   const [filter, setFilter] = useState("week");
   const [search, setSearch] = useState("");
   const [interaction, setInteraction] = useState("");
@@ -102,6 +108,55 @@ export default function AnalyticsPage() {
     }
   };
 
+  const handleExportCsv = async () => {
+    try {
+      setExportingCsv(true);
+      const params = new URLSearchParams({
+        ...(filter && { filter }),
+        ...(search && { search }),
+        ...(deviceType !== "all" && { deviceType }),
+        ...(os !== "all" && { os }),
+        ...(browser !== "all" && { browser }),
+        ...(interaction && { interaction }),
+        sortField,
+        sortOrder,
+      });
+
+      const response = await fetch(`/api/admin/analytics/export?${params}`);
+      if (!response.ok) throw new Error("Export failed");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `analytics-export-${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Export CSV error:", error);
+      alert("Failed to export CSV");
+    } finally {
+      setExportingCsv(false);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    try {
+      setExportingPdf(true);
+      await generatePDF(
+        "analytics-container",
+        `analytics-report-${new Date().toISOString().split("T")[0]}.pdf`
+      );
+    } catch (error) {
+      console.error("Export PDF error:", error);
+      alert("Failed to export PDF");
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
   const formatDuration = (ms?: number) => {
     if (ms === undefined || ms === null) return "N/A";
     if (ms < 1000) return "< 1s";
@@ -134,7 +189,7 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" id="analytics-container">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         {/* Header */}
@@ -143,14 +198,50 @@ export default function AnalyticsPage() {
             <h1 className="text-4xl font-bold text-white mb-2">User Journey Analytics</h1>
             <p className="text-gray-400">Track visitor behavior and section impressions</p>
           </div>
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing || loading}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-          >
-            <RefreshCcw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
-            {refreshing ? "Refreshing..." : "Refresh"}
-          </button>
+          <div className="flex gap-2" data-html2canvas-ignore>
+            <div className="relative" data-html2canvas-ignore>
+              <button
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                disabled={exportingCsv || exportingPdf || loading}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                onBlur={() => setTimeout(() => setShowExportMenu(false), 200)}
+              >
+                <Download
+                  className={`w-4 h-4 ${exportingCsv || exportingPdf ? "animate-bounce" : ""}`}
+                />
+                {exportingCsv || exportingPdf ? "Exporting..." : "Export"}
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform ${showExportMenu ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {/* Dropdown Menu */}
+              {showExportMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+                  <button
+                    onClick={handleExportCsv}
+                    className="w-full px-4 py-3 text-left text-gray-200 hover:bg-gray-700 flex items-center gap-2 text-sm transition-colors"
+                  >
+                    <span className="font-medium">Export CSV</span>
+                  </button>
+                  <button
+                    onClick={handleExportPdf}
+                    className="w-full px-4 py-3 text-left text-gray-200 hover:bg-gray-700 flex items-center gap-2 text-sm transition-colors border-t border-gray-700"
+                  >
+                    <span className="font-medium">Export PDF</span>
+                  </button>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing || loading}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+            >
+              <RefreshCcw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+              {refreshing ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}

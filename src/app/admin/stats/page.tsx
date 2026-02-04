@@ -17,7 +17,16 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import { Loader2, Users, Globe, Monitor, Smartphone, RefreshCcw, Activity } from "lucide-react";
+import {
+  Loader2,
+  Users,
+  Globe,
+  Monitor,
+  Smartphone,
+  RefreshCcw,
+  Activity,
+  MapPin,
+} from "lucide-react";
 
 export default function StatsPage() {
   // Stats State
@@ -196,8 +205,50 @@ export default function StatsPage() {
                 </div>
               </div>
 
+              {/* Visitor Locations */}
+              <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 h-96">
+                <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-gray-400" />
+                  Visitor Locations
+                </h3>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout="vertical"
+                    data={statsData?.locationStats || []}
+                    margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
+                    <XAxis type="number" stroke="#9CA3AF" fontSize={12} />
+                    <YAxis
+                      dataKey="_id"
+                      type="category"
+                      width={120}
+                      stroke="#9CA3AF"
+                      fontSize={11}
+                      tickFormatter={(value) =>
+                        value && value.length > 18 ? value.substring(0, 18) + "..." : value
+                      }
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#1F2937",
+                        border: "none",
+                        borderRadius: "8px",
+                      }}
+                      itemStyle={{ color: "#fff" }}
+                      cursor={{ fill: "#374151" }}
+                    />
+                    <Bar dataKey="count" fill="#10B981" radius={[0, 4, 4, 0]}>
+                      {(statsData?.locationStats || []).map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
               {/* OS Distribution */}
-              <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 h-96 lg:col-span-2">
+              <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 h-96">
                 <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
                   <Smartphone className="w-5 h-5 text-gray-400" />
                   Operating Systems

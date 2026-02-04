@@ -47,6 +47,7 @@ interface Journey {
   };
   location?: {
     country?: string;
+    region?: string;
     city?: string;
     ip?: string;
   };
@@ -249,10 +250,21 @@ export default function JourneyDetailPage() {
                           </p>
                         </div>
                         <div className="bg-gray-800 p-3 rounded-lg border border-gray-700">
-                          <p className="text-xs text-gray-400 mb-1">Location (IP)</p>
+                          <p className="text-xs text-gray-400 mb-1">Location</p>
                           <p className="text-gray-200 text-sm">
-                            {journey.location?.ip || "Unknown"}
+                            {[
+                              journey.location?.city,
+                              journey.location?.region,
+                              journey.location?.country,
+                            ]
+                              .filter(Boolean)
+                              .join(", ") || "Unknown Location"}
                           </p>
+                          {journey.location?.ip && (
+                            <p className="text-xs text-gray-500 mt-1 font-mono">
+                              IP: {journey.location.ip}
+                            </p>
+                          )}
                         </div>
                       </div>
 

@@ -152,6 +152,24 @@ export async function GET() {
       { $limit: 10 },
     ]);
 
+    // Location Stats (City, Country)
+    const locationStats = await UserJourney.aggregate([
+      {
+        $group: {
+          _id: {
+            $concat: [
+              { $ifNull: ["$location.city", "Unknown"] },
+              ", ",
+              { $ifNull: ["$location.country", "Unknown"] },
+            ],
+          },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { count: -1 } },
+      { $limit: 10 },
+    ]);
+
     return NextResponse.json({
       totalVisits,
       uniqueVisitors,
@@ -165,6 +183,7 @@ export async function GET() {
       blogStats,
       clickStats,
       inputStats,
+      locationStats,
       recentMessages,
     });
   } catch (error) {

@@ -47,26 +47,38 @@ Answer:`;
 
 function buildPortfolioContext(portfolio: any): string {
   const context = `
+Personal Information:
 Name: ${portfolio.personal.name}
-Role: ${portfolio.personal.role}
+Role: ${portfolio.personal.title}
+Tagline: ${portfolio.personal.tagline}
 Location: ${portfolio.personal.location}
 Email: ${portfolio.personal.email}
+Phone: ${portfolio.personal.phone}
+Website: ${portfolio.personal.website}
+Resume: ${portfolio.resumeUrl || "Not available"}
 
-Bio: ${portfolio.personal.bio}
+Social Links:
+GitHub: ${portfolio.social.github}
+LinkedIn: ${portfolio.social.linkedin}
+Email: ${portfolio.social.email}
+
+Bio:
+${portfolio.about.bio.join("\n")}
 
 Skills:
 Frontend: ${portfolio.skills.frontend.join(", ")}
 Backend: ${portfolio.skills.backend.join(", ")}
-Tools: ${portfolio.skills.tools?.join(", ") || "N/A"}
+Tools: ${portfolio.skills.tools.join(", ")}
+Other: ${portfolio.skills.other.join(", ")}
 
 Experience:
 ${portfolio.experience
   .map(
     (exp: any, idx: number) => `
-${idx + 1}. ${exp.role} at ${exp.company}
-   Duration: ${exp.duration}
-   ${exp.description}
-   Achievements: ${exp.highlights?.join("; ") || "N/A"}
+${idx + 1}. ${exp.role} at ${exp.company} (${exp.type})
+   Period: ${exp.period}
+   Description:
+   ${exp.description.join("\n   ")}
 `
   )
   .join("\n")}
@@ -77,7 +89,11 @@ ${portfolio.projects
     (proj: any, idx: number) => `
 ${idx + 1}. ${proj.title}
    Description: ${proj.description}
-   Technologies: ${proj.technologies?.join(", ") || "N/A"}
+   Tags: ${proj.tags.join(", ")}
+   GitHub: ${proj.github}
+   Demo: ${proj.demo}
+   ${proj.playStoreUrl ? `Play Store: ${proj.playStoreUrl}` : ""}
+   ${proj.appStoreUrl ? `App Store: ${proj.appStoreUrl}` : ""}
 `
   )
   .join("\n")}
@@ -87,11 +103,32 @@ ${
   portfolio.education
     ?.map(
       (edu: any) => `
-${edu.degree} from ${edu.institution} (${edu.year})
+${edu.degree} from ${edu.institution}
+   Location: ${edu.location}
+   Period: ${edu.period}
+   ${edu.gpa ? `GPA: ${edu.gpa}` : ""}
 `
     )
     .join("\n") || "N/A"
 }
+
+Awards & Achievements:
+Awards: ${portfolio.awards?.join(", ") || "None"}
+Achievements:
+${
+  portfolio.achievements
+    ?.filter((a: any) => a.unlocked)
+    .map((a: any) => `- ${a.title}: ${a.description}`)
+    .join("\n") || "None"
+}
+
+Testimonials:
+${
+  portfolio.testimonials?.map((t: any) => `- "${t.text}" — ${t.name}, ${t.role}`).join("\n") ||
+  "None"
+}
+
+Hobbies: ${portfolio.hobbies?.join(", ") || "N/A"}
 `.trim();
 
   return context;

@@ -18,6 +18,7 @@ export interface IDeviceInfo {
 
 export interface ILocationInfo {
   country?: string;
+  region?: string;
   city?: string;
   ip?: string;
 }
@@ -90,6 +91,7 @@ const DeviceInfoSchema = new Schema<IDeviceInfo>(
 const LocationInfoSchema = new Schema<ILocationInfo>(
   {
     country: String,
+    region: String,
     city: String,
     ip: String,
   },

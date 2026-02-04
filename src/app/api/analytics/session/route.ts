@@ -20,8 +20,35 @@ export async function POST(request: NextRequest) {
     const sessionId = generateSessionId();
     const device = parseUserAgent(userAgent);
 
-    // Get location from IP (optional - would need IP geolocation service)
-    const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip");
+    // Get location from IP
+    let ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0] || request.headers.get("x-real-ip");
+
+    // Handle localhost/internal IPs for dev
+    if (ip === "::1" || ip === "127.0.0.1") {
+      ip = "";
+    }
+
+    let locationData = { ip: ip || undefined };
+
+    if (ip) {
+      try {
+        const geoRes = await fetch(`http://ip-api.com/json/${ip}`);
+        if (geoRes.ok) {
+          const geoData = await geoRes.json();
+          if (geoData.status === "success") {
+            locationData = {
+              ip,
+              ...(geoData.country && { country: geoData.country }),
+              ...(geoData.regionName && { region: geoData.regionName }),
+              ...(geoData.city && { city: geoData.city }),
+            };
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch location data", e);
+      }
+    }
 
     const journey = await UserJourney.create({
       sessionId,
@@ -30,7 +57,7 @@ export async function POST(request: NextRequest) {
       referrer: referrer || "direct",
       userAgent,
       device,
-      location: ip ? { ip } : undefined,
+      location: locationData,
       startTime: new Date(),
       events: [],
     });

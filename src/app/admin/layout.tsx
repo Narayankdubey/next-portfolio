@@ -75,8 +75,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/chat", label: "Chat History", icon: History },
   ];
 
-  // Don't show layout on auth pages
-  if (pathname === "/admin/login" || pathname === "/admin/register") {
+  // Don't show layout on auth pages or full-screen editor pages
+  if (
+    pathname === "/admin/login" ||
+    pathname === "/admin/register" ||
+    pathname.startsWith("/admin/blog/create") ||
+    pathname.startsWith("/admin/blog/edit")
+  ) {
     return <>{children}</>;
   }
 

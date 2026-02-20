@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { Sun, Moon } from "lucide-react";
+import BlogCard from "./BlogCard";
 import styles from "./BlogForm.module.css";
 
 interface BlogFormProps {
@@ -22,6 +24,7 @@ export default function BlogForm({ onClose, existingPost }: BlogFormProps) {
   const [type, setType] = useState<"internal" | "external">("internal");
   const [externalUrl, setExternalUrl] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light");
   const contentRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -113,18 +116,11 @@ export default function BlogForm({ onClose, existingPost }: BlogFormProps) {
   };
 
   return (
-    <div
-      className={styles.overlay}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className={styles.modal}>
+    <div className={styles.container}>
+      {/* Form Section */}
+      <div className={styles.formSection}>
         <div className={styles.header}>
           <h2>{existingPost ? "Edit Blog Post" : "Create New Blog Post"}</h2>
-          <button onClick={onClose} className={styles.closeBtn} aria-label="Close">
-            ×
-          </button>
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -232,7 +228,7 @@ export default function BlogForm({ onClose, existingPost }: BlogFormProps) {
               placeholder="Write your blog content here. Use the formatting buttons above to add HTML formatting."
               className={styles.editor}
               rows={15}
-              required
+              required={type === "internal"}
             />
             <span className={styles.hint}>Use formatting buttons or write HTML directly</span>
           </div>
@@ -241,11 +237,98 @@ export default function BlogForm({ onClose, existingPost }: BlogFormProps) {
             <button type="submit" className={styles.saveBtn}>
               {existingPost ? "Update Post" : "Create Post"}
             </button>
-            <button type="button" onClick={onClose} className={styles.cancelBtn}>
-              Cancel
-            </button>
           </div>
         </form>
+      </div>
+
+      {/* Preview Section */}
+      <div
+        className={`${styles.previewSection} ${previewTheme === "dark" ? styles.previewDark : styles.previewLight}`}
+      >
+        <div className={styles.previewHeader}>
+          <h2 className="text-xl font-bold flex-1">Live Preview</h2>
+          <div className="flex items-center gap-2 bg-gray-200 dark:bg-gray-800 p-1 rounded-lg">
+            <button
+              type="button"
+              onClick={() => setPreviewTheme("light")}
+              className={`p-1.5 rounded-md transition-colors ${previewTheme === "light" ? "bg-white text-gray-900 shadow" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"}`}
+              title="Light Mode"
+            >
+              <Sun size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreviewTheme("dark")}
+              className={`p-1.5 rounded-md transition-colors ${previewTheme === "dark" ? "bg-gray-700 text-white shadow" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"}`}
+              title="Dark Mode"
+            >
+              <Moon size={16} />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-10 mt-6">
+          {/* Card Preview */}
+          <div>
+            <h3 className="text-sm font-semibold mb-4 uppercase tracking-wider opacity-60">
+              Listing Card Preview
+            </h3>
+            <div className="max-w-sm rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 transition-colors">
+              <div className="pointer-events-none">
+                <BlogCard
+                  id="preview-id"
+                  title={title || "Blog Title"}
+                  description={description || "Blog Description"}
+                  thumbnailUrl={thumbnailUrl}
+                  type={type}
+                  externalUrl={externalUrl}
+                  createdAt={new Date().toISOString()}
+                  likeCount={0}
+                  commentCount={0}
+                  viewCount={0}
+                  slug="preview"
+                />
+              </div>
+            </div>
+          </div>
+
+          <hr className="border-t border-gray-300 dark:border-gray-700 opacity-50" />
+
+          {/* Detailed Content Preview */}
+          <div className="transition-colors">
+            <h3 className="text-sm font-semibold mb-4 uppercase tracking-wider opacity-60">
+              Full Detail Preview
+            </h3>
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold mb-2 break-words">{title || "Blog Title"}</h1>
+              <p className="opacity-70 mb-4 break-words">{description || "Blog Description"}</p>
+              {thumbnailUrl && (
+                <img
+                  src={thumbnailUrl}
+                  alt="Thumbnail"
+                  className="w-full max-h-96 object-cover rounded-lg mb-6 border border-gray-200 dark:border-gray-800"
+                  onError={(e) => (e.currentTarget.style.display = "none")}
+                />
+              )}
+            </div>
+
+            {type === "internal" ? (
+              <div
+                className={styles.previewContent}
+                dangerouslySetInnerHTML={{
+                  __html: content || "<p class='opacity-50'>Content goes here...</p>",
+                }}
+              />
+            ) : (
+              <div className="p-4 bg-blue-50/10 text-blue-800 dark:text-blue-300 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="font-medium">External Link Post</p>
+                <p className="text-sm mt-1">
+                  This post will redirect users to: {externalUrl || "Enter a URL"}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -18,9 +18,21 @@ interface BlogPostInput {
 }
 
 // GET - list all blog posts (admin view)
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await dbConnect();
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (id) {
+      const post = await BlogPost.findById(id).lean();
+      if (!post) {
+        return NextResponse.json({ success: false, error: "Blog post not found" }, { status: 404 });
+      }
+      const { __v, _id, createdAt, updatedAt, ...rest } = post as any;
+      return NextResponse.json({ success: true, data: { id: _id, ...rest } });
+    }
+
     const posts = await BlogPost.find().lean();
     // Remove MongoDB internal fields
     const cleaned = posts.map((p: any) => {

@@ -14,6 +14,9 @@ import {
   User,
   Briefcase,
   Award,
+  Stamp,
+  Trash2,
+  Plus,
 } from "lucide-react";
 
 // --- TYPE DEFINITIONS ---
@@ -23,6 +26,14 @@ interface SkillsData {
   backend?: string[];
   tools?: string[];
   other?: string[];
+}
+
+interface CertificateData {
+  title: string;
+  provider: string;
+  certificateUrl: string;
+  type: "iframe" | "photo";
+  url: string;
 }
 
 interface PortfolioData {
@@ -45,6 +56,7 @@ interface PortfolioData {
     bio?: string[];
   };
   skills?: SkillsData;
+  certificates?: CertificateData[];
   resumeUrl?: string;
   [key: string]: any;
 }
@@ -180,6 +192,42 @@ export default function PortfolioEditor() {
       category,
       currentSkills.filter((_, i) => i !== index)
     );
+  };
+
+  // --- Certificates Functions ---
+  const addCertificate = () => {
+    const newCert: CertificateData = {
+      title: "New Certificate",
+      provider: "Provider Name",
+      certificateUrl: "",
+      type: "photo",
+      url: "",
+    };
+    setData({
+      ...data,
+      certificates: [...(data.certificates || []), newCert],
+    });
+  };
+
+  const updateCertificate = (index: number, field: keyof CertificateData, value: string) => {
+    const updatedCertificates = [...(data.certificates || [])];
+    updatedCertificates[index] = {
+      ...updatedCertificates[index],
+      [field]: value,
+    };
+    setData({
+      ...data,
+      certificates: updatedCertificates,
+    });
+  };
+
+  const removeCertificate = (index: number) => {
+    const updatedCertificates = [...(data.certificates || [])];
+    updatedCertificates.splice(index, 1);
+    setData({
+      ...data,
+      certificates: updatedCertificates,
+    });
   };
 
   if (loading) {
@@ -429,6 +477,100 @@ export default function PortfolioEditor() {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Certificates */}
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Stamp className="w-5 h-5 text-green-500" />
+                Certificates
+              </h2>
+              <button
+                onClick={addCertificate}
+                className="flex items-center gap-1 text-sm bg-green-600/20 text-green-400 hover:bg-green-600/30 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <Plus className="w-4 h-4" /> Add Certificate
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {(data.certificates || []).map((cert, index) => (
+                <div
+                  key={index}
+                  className="bg-gray-900 border border-gray-700 rounded-lg p-4 relative group"
+                >
+                  <button
+                    onClick={() => removeCertificate(index)}
+                    className="absolute top-4 right-4 text-gray-500 hover:text-red-400 transition-colors bg-gray-800 rounded p-1.5 md:opacity-0 group-hover:opacity-100"
+                    title="Remove Certificate"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-10">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Title</label>
+                      <input
+                        type="text"
+                        value={cert.title}
+                        onChange={(e) => updateCertificate(index, "title", e.target.value)}
+                        className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Provider</label>
+                      <input
+                        type="text"
+                        value={cert.provider}
+                        onChange={(e) => updateCertificate(index, "provider", e.target.value)}
+                        className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Type</label>
+                      <select
+                        value={cert.type}
+                        onChange={(e) => updateCertificate(index, "type", e.target.value)}
+                        className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                      >
+                        <option value="photo">Photo / Image</option>
+                        <option value="iframe">Iframe / Embed</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">
+                        Certificate External URL
+                      </label>
+                      <input
+                        type="url"
+                        value={cert.certificateUrl}
+                        onChange={(e) => updateCertificate(index, "certificateUrl", e.target.value)}
+                        placeholder="https://provider.com/verify/123"
+                        className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-xs text-gray-400 mb-1">
+                        Source URL (Image Link or Embed URL)
+                      </label>
+                      <input
+                        type="url"
+                        value={cert.url}
+                        onChange={(e) => updateCertificate(index, "url", e.target.value)}
+                        placeholder="https://image-host.com/cert.jpg"
+                        className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {(!data.certificates || data.certificates.length === 0) && (
+                <p className="text-gray-500 text-sm text-center py-4 bg-gray-900 rounded-xl border border-gray-800">
+                  No certificates added yet. Click &quot;Add Certificate&quot; to begin.
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Complex Data Notice */}

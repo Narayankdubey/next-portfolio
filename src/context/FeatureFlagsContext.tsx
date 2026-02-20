@@ -9,6 +9,7 @@ const defaultFlags = {
     projects: true,
     experience: true,
     testimonials: true,
+    certificates: true,
     contact: true,
   },
   features: {
@@ -51,6 +52,7 @@ interface FeatureFlags {
     projects: boolean;
     experience: boolean;
     testimonials: boolean;
+    certificates: boolean;
     contact: boolean;
   };
   features: {

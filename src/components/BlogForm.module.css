@@ -1,68 +1,103 @@
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
+.container {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+  height: 100%;
 }
 
-.modal {
+@media (min-width: 1024px) {
+  .container {
+    flex-direction: row;
+    align-items: stretch;
+  }
+}
+
+.formSection {
+  flex: 1;
   background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
-  padding: 0;
+  padding: 2rem;
   border-radius: 1rem;
-  max-width: 800px;
-  width: 100%;
-  max-height: 95vh;
-  overflow: hidden;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.previewSection {
+  flex: 1;
+  background: #ffffff;
+  color: #1a202c;
+  /* dark text for preview */
+  padding: 2rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
+}
+
+/* Add some dark mode fallback if body is dark */
+.previewContent {
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+}
+
+.previewContent h1,
+.previewContent h2,
+.previewContent h3 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: bold;
+}
+
+.previewContent p {
+  margin-bottom: 1em;
+}
+
+.previewContent a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.previewContent blockquote {
+  border-left: 4px solid #cbd5e1;
+  padding-left: 1rem;
+  color: #64748b;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.previewContent ul,
+.previewContent ol {
+  margin-bottom: 1em;
+  padding-left: 1.5rem;
+}
+
+.previewContent ul {
+  list-style-type: disc;
+}
+
+.previewContent ol {
+  list-style-type: decimal;
 }
 
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .header h2 {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
-}
-
-.closeBtn {
-  background: none;
-  border: none;
   color: white;
-  font-size: 2rem;
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background 0.2s;
-}
-
-.closeBtn:hover {
-  background: rgba(255, 255, 255, 0.2);
 }
 
 .form {
-  padding: 2rem;
-  overflow-y: auto;
-  max-height: calc(95vh - 80px);
+  display: flex;
+  flex-direction: column;
 }
 
 .formGroup {
@@ -118,7 +153,7 @@
 }
 
 .editor {
-  min-height: 300px;
+  min-height: 400px;
   font-family: "Courier New", monospace;
   font-size: 0.9rem;
   line-height: 1.6;
@@ -214,4 +249,33 @@
 
 .cancelBtn:hover {
   background: #64748b;
+}
+
+/* Theme Toggle Classes for Preview Section */
+.previewLight {
+  background: #ffffff;
+  color: #1a202c;
+}
+
+.previewDark {
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+.previewHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+.previewDark .previewContent a {
+  color: #60a5fa;
+  /* lighter blue for dark mode links */
+}
+
+.previewDark .previewContent blockquote {
+  border-left-color: #475569;
+  color: #94a3b8;
 }

@@ -79,6 +79,14 @@ export interface IAchievement {
   unlocked: boolean;
 }
 
+export interface ICertificate {
+  title: string;
+  provider: string;
+  certificateUrl: string;
+  type: "iframe" | "photo";
+  url: string;
+}
+
 export interface IPortfolio {
   personal: IPersonal;
   social: ISocial;
@@ -92,6 +100,7 @@ export interface IPortfolio {
   playlist: IPlaylistItem[];
   testimonials: ITestimonial[];
   achievements: IAchievement[];
+  certificates?: ICertificate[];
   resumeUrl?: string;
   updatedAt?: Date;
 }
@@ -205,6 +214,17 @@ const AchievementSchema = new Schema(
   { _id: false }
 );
 
+const CertificateSchema = new Schema(
+  {
+    title: { type: String, required: true },
+    provider: { type: String, required: true },
+    certificateUrl: { type: String, required: true },
+    type: { type: String, enum: ["iframe", "photo"], required: true },
+    url: { type: String, required: true },
+  },
+  { _id: false }
+);
+
 // Main Portfolio schema
 const PortfolioSchema = new Schema<IPortfolio>(
   {
@@ -220,6 +240,7 @@ const PortfolioSchema = new Schema<IPortfolio>(
     playlist: { type: [PlaylistItemSchema], required: true },
     testimonials: { type: [TestimonialSchema], required: true },
     achievements: { type: [AchievementSchema], required: true },
+    certificates: { type: [CertificateSchema], default: [] },
     resumeUrl: { type: String },
   },
   {
@@ -227,7 +248,11 @@ const PortfolioSchema = new Schema<IPortfolio>(
   }
 );
 
-// Prevent model recompilation during hot reloads
+// Allow schema changes to hot-reload in development
+if (process.env.NODE_ENV !== "production" && mongoose.models.Portfolio) {
+  delete mongoose.models.Portfolio;
+}
+
 const Portfolio: Model<IPortfolio> =
   mongoose.models.Portfolio || mongoose.model<IPortfolio>("Portfolio", PortfolioSchema);
 

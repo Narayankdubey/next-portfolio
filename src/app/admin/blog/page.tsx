@@ -12,8 +12,8 @@ import {
   EyeOff,
   Search,
 } from "lucide-react";
-import BlogForm from "@/components/BlogForm";
 import ToggleSwitch from "@/components/ToggleSwitch";
+import { useRouter } from "next/navigation";
 
 interface BlogPostAdmin {
   id: string;
@@ -30,8 +30,7 @@ export default function AdminBlogPage() {
   const [posts, setPosts] = useState<BlogPostAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [editPost, setEditPost] = useState<BlogPostAdmin | null>(null);
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [visibilityFilter, setVisibilityFilter] = useState<"all" | "published" | "hidden">("all");
   const [typeFilter, setTypeFilter] = useState<"all" | "internal" | "external">("all");
@@ -99,18 +98,11 @@ export default function AdminBlogPage() {
   };
 
   const openCreate = () => {
-    setEditPost(null);
-    setShowForm(true);
+    router.push("/admin/blog/create");
   };
 
   const openEdit = (post: BlogPostAdmin) => {
-    setEditPost(post);
-    setShowForm(true);
-  };
-
-  const closeForm = () => {
-    setShowForm(false);
-    fetchPosts();
+    router.push(`/admin/blog/edit/${post.id}`);
   };
 
   if (loading) {
@@ -139,8 +131,6 @@ export default function AdminBlogPage() {
 
   const visibleCount = posts.filter((p) => p.isVisible).length;
   const hiddenCount = posts.filter((p) => !p.isVisible).length;
-
-
 
   return (
     <div className="space-y-6">
@@ -192,10 +182,11 @@ export default function AdminBlogPage() {
             <button
               key={f}
               onClick={() => setVisibilityFilter(f)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors capitalize ${visibilityFilter === f
-                ? "bg-blue-600 text-white shadow-lg"
-                : "text-gray-400 hover:text-white hover:bg-gray-700"
-                }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors capitalize ${
+                visibilityFilter === f
+                  ? "bg-blue-600 text-white shadow-lg"
+                  : "text-gray-400 hover:text-white hover:bg-gray-700"
+              }`}
             >
               {f}
             </button>
@@ -208,10 +199,11 @@ export default function AdminBlogPage() {
             <button
               key={f}
               onClick={() => setTypeFilter(f)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors capitalize ${typeFilter === f
-                ? "bg-purple-600 text-white shadow-lg"
-                : "text-gray-400 hover:text-white hover:bg-gray-700"
-                }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors capitalize ${
+                typeFilter === f
+                  ? "bg-purple-600 text-white shadow-lg"
+                  : "text-gray-400 hover:text-white hover:bg-gray-700"
+              }`}
             >
               {f}
             </button>
@@ -278,10 +270,11 @@ export default function AdminBlogPage() {
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-lg font-bold text-white">{post.title}</h3>
                       <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${post.type === "internal"
-                          ? "bg-blue-500/10 text-blue-400"
-                          : "bg-purple-500/10 text-purple-400"
-                          }`}
+                        className={`px-2 py-1 rounded text-xs font-medium ${
+                          post.type === "internal"
+                            ? "bg-blue-500/10 text-blue-400"
+                            : "bg-purple-500/10 text-purple-400"
+                        }`}
                       >
                         {post.type}
                       </span>
@@ -337,9 +330,6 @@ export default function AdminBlogPage() {
           )}
         </AnimatePresence>
       </div>
-
-      {/* Blog Form Modal */}
-      {showForm && <BlogForm onClose={closeForm} existingPost={editPost} />}
     </div>
   );
 }

@@ -8,6 +8,7 @@ import About from "@/components/About";
 import Skills from "@/components/Skills";
 import ExperienceTimeline from "@/components/ExperienceTimeline";
 import Projects from "@/components/Projects";
+import CertificatesSection from "@/components/CertificatesSection";
 import Contact from "@/components/Contact";
 import FloatingTerminal from "@/components/FloatingTerminal";
 import SearchModal from "@/components/SearchModal";
@@ -235,6 +236,7 @@ export default function Home() {
         {flags.sections.skills && <Skills />}
         {flags.sections.experience && <ExperienceTimeline />}
         {flags.sections.projects && <Projects />}
+        {flags.sections.certificates && <CertificatesSection />}
         {flags.sections.testimonials && <TestimonialCarousel />}
         {flags.features.blog && <BlogWidget />}
         {flags.sections.contact && <Contact />}

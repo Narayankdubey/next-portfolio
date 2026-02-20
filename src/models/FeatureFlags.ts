@@ -7,6 +7,7 @@ export interface ISections {
   projects: boolean;
   experience: boolean;
   testimonials: boolean;
+  certificates: boolean;
   contact: boolean;
 }
 
@@ -59,6 +60,7 @@ const SectionsSchema = new Schema(
     projects: { type: Boolean, default: true },
     experience: { type: Boolean, default: true },
     testimonials: { type: Boolean, default: true },
+    certificates: { type: Boolean, default: true },
     contact: { type: Boolean, default: true },
   },
   { _id: false }

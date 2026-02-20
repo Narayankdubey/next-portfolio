@@ -83,7 +83,7 @@ export async function PUT(request: NextRequest) {
     const portfolio = await Portfolio.findOne();
 
     if (portfolio) {
-      Object.assign(portfolio, newData);
+      portfolio.set(newData);
       console.log("[Portfolio Update] BEFORE save - resumeUrl:", portfolio.resumeUrl);
 
       const saveResult = await portfolio.save();

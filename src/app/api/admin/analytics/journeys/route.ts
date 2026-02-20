@@ -17,9 +17,12 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const filter = searchParams.get("filter"); // 'today', 'week', 'month'
     const search = searchParams.get("search");
-    const deviceType = searchParams.get("deviceType");
-    const os = searchParams.get("os");
-    const browser = searchParams.get("browser");
+    const deviceType = searchParams.getAll("deviceType");
+    const os = searchParams.getAll("os");
+    const browser = searchParams.getAll("browser");
+    const location = searchParams.getAll("location");
+    const minDuration = searchParams.get("minDuration");
+    const maxDuration = searchParams.get("maxDuration");
     const interaction = searchParams.get("interaction");
     const sortField = searchParams.get("sortField") || "updatedAt";
     const sortOrder = searchParams.get("sortOrder") || "desc";
@@ -51,10 +54,36 @@ export async function GET(request: NextRequest) {
       matchStage.startTime = { $gte: startDate };
     }
 
-    // Additional filters
-    if (deviceType && deviceType !== "all") matchStage["device.type"] = deviceType;
-    if (os && os !== "all") matchStage["device.os"] = os;
-    if (browser && browser !== "all") matchStage["device.browser"] = browser;
+    // Duration filter bounds
+    if (minDuration || maxDuration) {
+      matchStage.totalDuration = {};
+      if (minDuration) matchStage.totalDuration.$gte = parseInt(minDuration) * 1000;
+      if (maxDuration) matchStage.totalDuration.$lte = parseInt(maxDuration) * 1000;
+    }
+
+    // Additional filters (Arrays)
+    if (deviceType.length > 0) matchStage["device.type"] = { $in: deviceType };
+    if (os.length > 0) matchStage["device.os"] = { $in: os };
+    if (browser.length > 0) matchStage["device.browser"] = { $in: browser };
+    if (location.length > 0) {
+      if (location.includes("Unknown")) {
+        // If "Unknown" is selected, match records where city isn't set, OR city is explicitly "Unknown",
+        // OR the city matches any of the other selected locations
+        const knownLocations = location.filter((l) => l !== "Unknown");
+        matchStage.$or = matchStage.$or || [];
+        matchStage.$or.push(
+          { "location.city": { $exists: false } },
+          { "location.city": null },
+          { "location.city": "" },
+          { "location.city": "Unknown" }
+        );
+        if (knownLocations.length > 0) {
+          matchStage.$or.push({ "location.city": { $in: knownLocations } });
+        }
+      } else {
+        matchStage["location.city"] = { $in: location };
+      }
+    }
 
     // Interaction filter (searches events and actions)
     if (interaction) {

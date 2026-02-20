@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { generatePDF } from "@/lib/pdfUtils";
+import MultiSelect from "@/components/MultiSelect";
 
 interface Journey {
   _id: string;
@@ -67,9 +68,16 @@ export default function AnalyticsPage() {
   const [interaction, setInteraction] = useState("");
   const [sortField, setSortField] = useState("updatedAt");
   const [sortOrder, setSortOrder] = useState("desc");
-  const [deviceType, setDeviceType] = useState("all");
-  const [os, setOs] = useState("all");
-  const [browser, setBrowser] = useState("all");
+  const [deviceType, setDeviceType] = useState<string[]>([]);
+  const [os, setOs] = useState<string[]>([]);
+  const [browser, setBrowser] = useState<string[]>([]);
+  const [location, setLocation] = useState<string[]>([]);
+  const [availableLocations, setAvailableLocations] = useState<string[]>([]);
+  const [availableDevices, setAvailableDevices] = useState<string[]>([]);
+  const [availableOs, setAvailableOs] = useState<string[]>([]);
+  const [availableBrowsers, setAvailableBrowsers] = useState<string[]>([]);
+  const [minDuration, setMinDuration] = useState("");
+  const [maxDuration, setMaxDuration] = useState("");
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({
     total: 0,
@@ -82,8 +90,40 @@ export default function AnalyticsPage() {
   });
 
   useEffect(() => {
+    fetchFilters();
+  }, []);
+
+  const fetchFilters = async () => {
+    try {
+      const response = await fetch("/api/admin/analytics/filters");
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableLocations([...data.cities, "Unknown"]);
+        setAvailableDevices(data.devices);
+        setAvailableOs(data.os);
+        setAvailableBrowsers(data.browsers);
+      }
+    } catch (error) {
+      console.error("Error fetching filters:", error);
+    }
+  };
+
+  useEffect(() => {
     fetchJourneys();
-  }, [filter, page, search, deviceType, os, browser, interaction, sortField, sortOrder]);
+  }, [
+    filter,
+    page,
+    search,
+    deviceType,
+    os,
+    browser,
+    location,
+    minDuration,
+    maxDuration,
+    interaction,
+    sortField,
+    sortOrder,
+  ]);
 
   const fetchJourneys = async () => {
     try {
@@ -93,13 +133,17 @@ export default function AnalyticsPage() {
         limit: "20",
         ...(filter && { filter }),
         ...(search && { search }),
-        ...(deviceType !== "all" && { deviceType }),
-        ...(os !== "all" && { os }),
-        ...(browser !== "all" && { browser }),
         ...(interaction && { interaction }),
+        ...(minDuration && { minDuration }),
+        ...(maxDuration && { maxDuration }),
         sortField,
         sortOrder,
       });
+
+      deviceType.forEach((d) => params.append("deviceType", d));
+      os.forEach((o) => params.append("os", o));
+      browser.forEach((b) => params.append("browser", b));
+      location.forEach((l) => params.append("location", l));
 
       const response = await fetch(`/api/admin/analytics/journeys?${params}`);
       if (!response.ok) throw new Error("Failed to fetch");
@@ -121,13 +165,17 @@ export default function AnalyticsPage() {
       const params = new URLSearchParams({
         ...(filter && { filter }),
         ...(search && { search }),
-        ...(deviceType !== "all" && { deviceType }),
-        ...(os !== "all" && { os }),
-        ...(browser !== "all" && { browser }),
         ...(interaction && { interaction }),
+        ...(minDuration && { minDuration }),
+        ...(maxDuration && { maxDuration }),
         sortField,
         sortOrder,
       });
+
+      deviceType.forEach((d) => params.append("deviceType", d));
+      os.forEach((o) => params.append("os", o));
+      browser.forEach((b) => params.append("browser", b));
+      location.forEach((l) => params.append("location", l));
 
       const response = await fetch(`/api/admin/analytics/export?${params}`);
       if (!response.ok) throw new Error("Export failed");
@@ -370,53 +418,80 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Advanced Filters */}
-          <div className="pt-4 border-t border-gray-700/50 flex flex-wrap gap-3 items-center">
+          <div className="pt-4 border-t border-gray-700/50 flex flex-wrap gap-4 items-center">
             <div className="flex items-center gap-2 text-gray-400 mr-2">
               <Filter className="w-4 h-4" />
               <span className="text-sm font-medium">Refine:</span>
             </div>
 
-            {[
-              {
-                value: deviceType,
-                set: setDeviceType,
-                options: ["all", "desktop", "mobile", "tablet"],
-                label: "Device",
-              },
-              {
-                value: os,
-                set: setOs,
-                options: ["all", "Mac", "Windows", "Android", "iOS", "Linux"],
-                label: "OS",
-              },
-              {
-                value: browser,
-                set: setBrowser,
-                options: ["all", "Chrome", "Firefox", "Safari", "Edge", "Opera"],
-                label: "Browser",
-              },
-            ].map((dropdown, idx) => (
-              <div key={idx} className="relative">
-                <select
-                  value={dropdown.value}
-                  onChange={(e) => {
-                    dropdown.set(e.target.value);
-                    setPage(1);
-                  }}
-                  className="appearance-none pl-3 pr-8 py-1.5 bg-gray-900/50 text-gray-300 border border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 cursor-pointer outline-none hover:bg-gray-800 transition-colors"
-                >
-                  <option value="all">{dropdown.label}: All</option>
-                  {dropdown.options
-                    .filter((o) => o !== "all")
-                    .map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                </select>
-                <ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 rotate-90 pointer-events-none" />
-              </div>
-            ))}
+            <MultiSelect
+              label="Device"
+              options={availableDevices}
+              selectedValues={deviceType}
+              onChange={(vals) => {
+                setDeviceType(vals);
+                setPage(1);
+              }}
+              className="w-40"
+            />
+            <MultiSelect
+              label="OS"
+              options={availableOs}
+              selectedValues={os}
+              onChange={(vals) => {
+                setOs(vals);
+                setPage(1);
+              }}
+              className="w-40"
+            />
+            <MultiSelect
+              label="Browser"
+              options={availableBrowsers}
+              selectedValues={browser}
+              onChange={(vals) => {
+                setBrowser(vals);
+                setPage(1);
+              }}
+              className="w-40"
+            />
+            <MultiSelect
+              label="City"
+              options={availableLocations}
+              selectedValues={location}
+              onChange={(vals) => {
+                setLocation(vals);
+                setPage(1);
+              }}
+              className="w-48"
+            />
+
+            {/* Duration Range (Seconds) */}
+            <div className="flex items-center gap-2 bg-gray-900/50 p-1.5 px-3 rounded-lg border border-gray-700">
+              <span className="text-sm text-gray-400">Duration (sec):</span>
+              <input
+                type="number"
+                min="0"
+                placeholder="Min"
+                value={minDuration}
+                onChange={(e) => {
+                  setMinDuration(e.target.value);
+                  setPage(1);
+                }}
+                className="w-16 bg-transparent text-gray-200 text-sm outline-none px-1 text-center placeholder-gray-600 appearance-none"
+              />
+              <span className="text-gray-600">-</span>
+              <input
+                type="number"
+                min="0"
+                placeholder="Max"
+                value={maxDuration}
+                onChange={(e) => {
+                  setMaxDuration(e.target.value);
+                  setPage(1);
+                }}
+                className="w-16 bg-transparent text-gray-200 text-sm outline-none px-1 text-center placeholder-gray-600 appearance-none"
+              />
+            </div>
           </div>
         </div>
 

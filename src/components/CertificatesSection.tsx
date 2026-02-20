@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ExternalLink, Stamp } from "lucide-react";
 import { usePortfolio } from "@/context/PortfolioContext";
@@ -9,15 +9,40 @@ export default function CertificatesSection() {
   const { trackAction } = useAnalytics();
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  const viewTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const trackedRef = useRef(false);
+
   // Track when section is viewed
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          trackAction("view", "certificates-section");
+        const isHighlyVisible =
+          entry.isIntersecting &&
+          (entry.intersectionRatio >= 0.7 ||
+            entry.intersectionRect.height / window.innerHeight >= 0.7);
+
+        const isPartiallyVisible = entry.isIntersecting && entry.intersectionRatio > 0;
+
+        if (isHighlyVisible && !trackedRef.current) {
+          if (!viewTimerRef.current) {
+            viewTimerRef.current = setTimeout(() => {
+              trackAction("view", "certificates-section");
+              trackedRef.current = true;
+            }, 1000);
+          }
+        } else if (isPartiallyVisible) {
+          if (viewTimerRef.current && !trackedRef.current) {
+            clearTimeout(viewTimerRef.current);
+            viewTimerRef.current = null;
+          }
+        } else {
+          if (viewTimerRef.current && !trackedRef.current) {
+            clearTimeout(viewTimerRef.current);
+            viewTimerRef.current = null;
+          }
         }
       },
-      { threshold: 0.1 }
+      { threshold: Array.from({ length: 21 }, (_, i) => i / 20) }
     );
 
     const element = document.getElementById("certificates");
@@ -25,6 +50,7 @@ export default function CertificatesSection() {
 
     return () => {
       if (element) observer.unobserve(element);
+      if (viewTimerRef.current) clearTimeout(viewTimerRef.current);
     };
   }, [trackAction]);
 

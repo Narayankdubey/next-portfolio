@@ -19,6 +19,7 @@ import {
   ArrowDown,
   ArrowUpDown,
   Download,
+  MapPin,
 } from "lucide-react";
 import Link from "next/link";
 import { generatePDF } from "@/lib/pdfUtils";
@@ -34,6 +35,12 @@ interface Journey {
     os: string;
     browser: string;
     deviceName?: string;
+  };
+  location?: {
+    city?: string;
+    country?: string;
+    region?: string;
+    ip?: string;
   };
   startTime: string;
   updatedAt: string;
@@ -550,15 +557,38 @@ export default function AnalyticsPage() {
                           {(journey.sessionId || journey.visitorId || "").substring(0, 12)}...
                         </Link>
                       </td>
-                      <td className="px-6 py-4 text-gray-200 text-sm">{journey.landingPage}</td>
+                      <td className="px-6 py-4 max-w-[150px] sm:max-w-[200px]">
+                        <div
+                          className="text-gray-200 text-sm truncate cursor-help"
+                          title={journey.landingPage}
+                        >
+                          {journey.landingPage}
+                        </div>
+                      </td>
                       <td className="px-6 py-4">
                         <div className="text-sm">
-                          <div className="text-gray-200 capitalize">
-                            {journey.device.deviceName || journey.device.type}
+                          <div className="text-gray-200 capitalize flex flex-col gap-1">
+                            <span>{journey.device.deviceName || journey.device.type}</span>
                           </div>
                           <div className="text-gray-400 text-xs">
                             {journey.device.os} / {journey.device.browser}
                           </div>
+                          {journey.location &&
+                            (journey.location.city ||
+                              journey.location.country ||
+                              journey.location.ip) && (
+                              <div
+                                className="text-gray-500 text-xs mt-1 flex items-center gap-1 truncate"
+                                title={journey.location.ip}
+                              >
+                                <MapPin className="w-3 h-3 shrink-0" />
+                                <span className="truncate">
+                                  {journey.location.city || journey.location.country
+                                    ? `${journey.location.city || "Unknown"}${journey.location.country ? `, ${journey.location.country}` : ""}`
+                                    : `IP: ${journey.location.ip}`}
+                                </span>
+                              </div>
+                            )}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-gray-200 text-sm">

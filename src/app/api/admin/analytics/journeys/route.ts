@@ -94,6 +94,7 @@ export async function GET(request: NextRequest) {
           landingPage: { $first: "$landingPage" },
           device: { $first: "$device" },
           referrer: { $first: "$referrer" },
+          location: { $first: "$location" },
           events: { $first: "$events" },
           totalDuration: { $sum: "$totalDuration" },
         },

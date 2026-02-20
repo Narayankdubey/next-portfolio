@@ -12,6 +12,7 @@ export function useSectionTracking(sectionId: string) {
   const startTimeRef = useRef<number | null>(null);
   const maxScrollDepthRef = useRef(0);
   const hasTrackedRef = useRef(false);
+  const viewTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const interactionIdRef = useRef<string | null>(null);
 
@@ -37,38 +38,71 @@ export function useSectionTracking(sectionId: string) {
 
     const handleIntersection = (entries: IntersectionObserverEntry[]) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          // Section came into view
-          if (!startTimeRef.current) {
-            startTimeRef.current = Date.now();
-            hasTrackedRef.current = true;
-            // Generate unique interaction ID for this visit
-            interactionIdRef.current = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const isHighlyVisible =
+          entry.isIntersecting &&
+          (entry.intersectionRatio >= 0.7 ||
+            entry.intersectionRect.height / window.innerHeight >= 0.7);
 
-            // Track initial impression
-            trackSection(sectionId, interactionIdRef.current, { scrollDepth: 0 });
+        const isPartiallyVisible = entry.isIntersecting && entry.intersectionRatio > 0;
+
+        if (isHighlyVisible) {
+          // Section came into view strongly enough
+          if (!startTimeRef.current && !viewTimerRef.current) {
+            viewTimerRef.current = setTimeout(() => {
+              startTimeRef.current = Date.now();
+              hasTrackedRef.current = true;
+              // Generate unique interaction ID for this visit
+              interactionIdRef.current = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+              // Track initial impression
+              trackSection(sectionId, interactionIdRef.current, { scrollDepth: 0 });
+            }, 1000);
           }
 
           // Update scroll depth
-          const scrollDepth = calculateScrollDepth();
-          if (scrollDepth > maxScrollDepthRef.current) {
-            maxScrollDepthRef.current = scrollDepth;
+          if (startTimeRef.current) {
+            const scrollDepth = calculateScrollDepth();
+            if (scrollDepth > maxScrollDepthRef.current) {
+              maxScrollDepthRef.current = scrollDepth;
+            }
           }
-        } else if (startTimeRef.current && interactionIdRef.current) {
-          // Section left view - track duration
-          const duration = Date.now() - startTimeRef.current;
-          trackSection(sectionId, interactionIdRef.current, {
-            duration,
-            scrollDepth: maxScrollDepthRef.current,
-          });
-          startTimeRef.current = null;
-          interactionIdRef.current = null;
+        } else if (isPartiallyVisible) {
+          // If we haven't locked in yet, cancel the start timer because it dipped below 70%
+          if (!startTimeRef.current && viewTimerRef.current) {
+            clearTimeout(viewTimerRef.current);
+            viewTimerRef.current = null;
+          }
+
+          // If we HAVE locked in, keep the duration running and just update scroll depth
+          if (startTimeRef.current) {
+            const scrollDepth = calculateScrollDepth();
+            if (scrollDepth > maxScrollDepthRef.current) {
+              maxScrollDepthRef.current = scrollDepth;
+            }
+          }
+        } else {
+          // Completely off screen
+          if (viewTimerRef.current) {
+            clearTimeout(viewTimerRef.current);
+            viewTimerRef.current = null;
+          }
+
+          if (startTimeRef.current && interactionIdRef.current) {
+            // Section left view - track duration
+            const duration = Date.now() - startTimeRef.current;
+            trackSection(sectionId, interactionIdRef.current, {
+              duration,
+              scrollDepth: maxScrollDepthRef.current,
+            });
+            startTimeRef.current = null;
+            interactionIdRef.current = null;
+          }
         }
       });
     };
 
     observerRef.current = new IntersectionObserver(handleIntersection, {
-      threshold: [0, 0.25, 0.5, 0.75, 1],
+      threshold: Array.from({ length: 21 }, (_, i) => i / 20),
       rootMargin: "0px",
     });
 
@@ -80,6 +114,11 @@ export function useSectionTracking(sectionId: string) {
     return () => {
       if (observerRef.current) {
         observerRef.current.disconnect();
+      }
+
+      // Cleanup timer
+      if (viewTimerRef.current) {
+        clearTimeout(viewTimerRef.current);
       }
 
       // Final tracking on unmount

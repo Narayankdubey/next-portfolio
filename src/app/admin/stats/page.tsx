@@ -28,6 +28,24 @@ import {
   MapPin,
 } from "lucide-react";
 
+const formatDuration = (ms: number) => {
+  if (!ms || ms < 0) return "0s";
+  const seconds = Math.floor((ms / 1000) % 60);
+  const minutes = Math.floor((ms / (1000 * 60)) % 60);
+  const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+  const days = Math.floor((ms / (1000 * 60 * 60 * 24)) % 7);
+  const weeks = Math.floor(ms / (1000 * 60 * 60 * 24 * 7));
+
+  const parts = [];
+  if (weeks > 0) parts.push(`${weeks}w`);
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+
+  return parts.slice(0, 2).join(" ");
+};
+
 export default function StatsPage() {
   // Stats State
   const [statsData, setStatsData] = useState<any>(null);
@@ -447,8 +465,8 @@ export default function StatsPage() {
                           {blog._id}
                         </td>
                         <td className="py-4 text-blue-400 font-bold">{blog.visits}</td>
-                        <td className="py-4 text-gray-300">{Math.round(blog.avgTime / 1000)}s</td>
-                        <td className="py-4 text-gray-300">{Math.round(blog.totalTime / 1000)}s</td>
+                        <td className="py-4 text-gray-300">{formatDuration(blog.avgTime)}</td>
+                        <td className="py-4 text-gray-300">{formatDuration(blog.totalTime)}</td>
                       </tr>
                     ))}
                     {(!statsData?.blogStats || statsData.blogStats.length === 0) && (

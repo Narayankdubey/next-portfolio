@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
     const deviceType = searchParams.getAll("deviceType");
     const os = searchParams.getAll("os");
     const browser = searchParams.getAll("browser");
+    const country = searchParams.getAll("country");
     const location = searchParams.getAll("location");
     const minDuration = searchParams.get("minDuration");
     const maxDuration = searchParams.get("maxDuration");
@@ -65,6 +66,25 @@ export async function GET(request: NextRequest) {
     if (deviceType.length > 0) matchStage["device.type"] = { $in: deviceType };
     if (os.length > 0) matchStage["device.os"] = { $in: os };
     if (browser.length > 0) matchStage["device.browser"] = { $in: browser };
+
+    if (country.length > 0) {
+      if (country.includes("Unknown")) {
+        const knownCountries = country.filter((c) => c !== "Unknown");
+        matchStage.$or = matchStage.$or || [];
+        matchStage.$or.push(
+          { "location.country": { $exists: false } },
+          { "location.country": null },
+          { "location.country": "" },
+          { "location.country": "Unknown" }
+        );
+        if (knownCountries.length > 0) {
+          matchStage.$or.push({ "location.country": { $in: knownCountries } });
+        }
+      } else {
+        matchStage["location.country"] = { $in: country };
+      }
+    }
+
     if (location.length > 0) {
       if (location.includes("Unknown")) {
         // If "Unknown" is selected, match records where city isn't set, OR city is explicitly "Unknown",

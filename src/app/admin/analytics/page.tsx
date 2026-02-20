@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Users,
@@ -71,8 +71,10 @@ export default function AnalyticsPage() {
   const [deviceType, setDeviceType] = useState<string[]>([]);
   const [os, setOs] = useState<string[]>([]);
   const [browser, setBrowser] = useState<string[]>([]);
+  const [country, setCountry] = useState<string[]>([]);
   const [location, setLocation] = useState<string[]>([]);
-  const [availableLocations, setAvailableLocations] = useState<string[]>([]);
+  const [locationMap, setLocationMap] = useState<Record<string, string[]>>({});
+  const [availableCountries, setAvailableCountries] = useState<string[]>([]);
   const [availableDevices, setAvailableDevices] = useState<string[]>([]);
   const [availableOs, setAvailableOs] = useState<string[]>([]);
   const [availableBrowsers, setAvailableBrowsers] = useState<string[]>([]);
@@ -98,17 +100,42 @@ export default function AnalyticsPage() {
       const response = await fetch("/api/admin/analytics/filters");
       if (response.ok) {
         const data = await response.json();
-        setAvailableLocations([...data.cities, "Unknown"]);
-        setAvailableDevices(data.devices);
-        setAvailableOs(data.os);
-        setAvailableBrowsers(data.browsers);
+        setLocationMap(data.locations || {});
+        setAvailableCountries(Object.keys(data.locations || {}).sort((a, b) => a.localeCompare(b)));
+        setAvailableDevices(data.devices || []);
+        setAvailableOs(data.os || []);
+        setAvailableBrowsers(data.browsers || []);
       }
     } catch (error) {
       console.error("Error fetching filters:", error);
     }
   };
 
+  const availableCities = useMemo(() => {
+    if (Object.keys(locationMap).length === 0) return [];
+
+    let citiesToInclude: string[] = [];
+
+    if (country.length === 0) {
+      // If no country is selected, show all available cities across all countries
+      Object.values(locationMap).forEach((cities) => {
+        citiesToInclude = [...citiesToInclude, ...cities];
+      });
+    } else {
+      // Show only cities for selected countries
+      country.forEach((c) => {
+        if (locationMap[c]) {
+          citiesToInclude = [...citiesToInclude, ...locationMap[c]];
+        }
+      });
+    }
+
+    return Array.from(new Set(citiesToInclude)).sort((a, b) => a.localeCompare(b));
+  }, [country, locationMap]);
+
   useEffect(() => {
+    // Note: To automatically clear irrelevant cities when country changes,
+    // we could do: setLocation(prev => prev.filter(c => availableCities.includes(c)));
     fetchJourneys();
   }, [
     filter,
@@ -117,6 +144,7 @@ export default function AnalyticsPage() {
     deviceType,
     os,
     browser,
+    country,
     location,
     minDuration,
     maxDuration,
@@ -143,6 +171,7 @@ export default function AnalyticsPage() {
       deviceType.forEach((d) => params.append("deviceType", d));
       os.forEach((o) => params.append("os", o));
       browser.forEach((b) => params.append("browser", b));
+      country.forEach((c) => params.append("country", c));
       location.forEach((l) => params.append("location", l));
 
       const response = await fetch(`/api/admin/analytics/journeys?${params}`);
@@ -175,6 +204,7 @@ export default function AnalyticsPage() {
       deviceType.forEach((d) => params.append("deviceType", d));
       os.forEach((o) => params.append("os", o));
       browser.forEach((b) => params.append("browser", b));
+      country.forEach((c) => params.append("country", c));
       location.forEach((l) => params.append("location", l));
 
       const response = await fetch(`/api/admin/analytics/export?${params}`);
@@ -455,8 +485,29 @@ export default function AnalyticsPage() {
               className="w-40"
             />
             <MultiSelect
+              label="Country"
+              options={availableCountries}
+              selectedValues={country}
+              onChange={(vals) => {
+                setCountry(vals);
+                // Reset invalid cities automatically when country shifts constraints
+                setLocation((prev) =>
+                  prev.filter((city) => {
+                    let isValid = false;
+                    if (vals.length === 0) isValid = true;
+                    vals.forEach((c) => {
+                      if (locationMap[c] && locationMap[c].includes(city)) isValid = true;
+                    });
+                    return isValid;
+                  })
+                );
+                setPage(1);
+              }}
+              className="w-48"
+            />
+            <MultiSelect
               label="City"
-              options={availableLocations}
+              options={availableCities}
               selectedValues={location}
               onChange={(vals) => {
                 setLocation(vals);

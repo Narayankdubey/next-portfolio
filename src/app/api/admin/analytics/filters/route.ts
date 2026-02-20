@@ -13,16 +13,36 @@ export async function GET(request: NextRequest) {
     await dbConnect();
 
     // Run aggregations concurrently for speed
-    const [rawCities, rawDevices, rawOs, rawBrowsers] = await Promise.all([
-      UserJourney.distinct("location.city", { "location.city": { $nin: [null, ""] } }),
+    const [locationsAggr, rawDevices, rawOs, rawBrowsers] = await Promise.all([
+      UserJourney.aggregate([
+        {
+          $group: {
+            _id: { $ifNull: ["$location.country", "Unknown"] },
+            cities: { $addToSet: { $ifNull: ["$location.city", "Unknown"] } },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ]),
       UserJourney.distinct("device.type", { "device.type": { $nin: [null, ""] } }),
       UserJourney.distinct("device.os", { "device.os": { $nin: [null, ""] } }),
       UserJourney.distinct("device.browser", { "device.browser": { $nin: [null, ""] } }),
     ]);
 
+    // Format locations map
+    const locationMap: Record<string, string[]> = {};
+    locationsAggr.forEach((loc) => {
+      const country = loc._id === "" ? "Unknown" : loc._id;
+      // Filter out nulls/empties, ensure "Unknown" is pushed if needed or map empty to Unknown
+      const cities = loc.cities
+        .map((c: any) => (c === "" || c === null ? "Unknown" : c))
+        .filter((c: string, i: number, arr: string[]) => arr.indexOf(c) === i)
+        .sort((a: string, b: string) => a.localeCompare(b));
+      locationMap[country] = cities;
+    });
+
     // Sort alphabetically and ensure 'Unknown' logic can be added on frontend
     const filters = {
-      cities: rawCities.sort((a, b) => a.localeCompare(b)),
+      locations: locationMap,
       devices: rawDevices.sort((a, b) => a.localeCompare(b)),
       os: rawOs.sort((a, b) => a.localeCompare(b)),
       browsers: rawBrowsers.sort((a, b) => a.localeCompare(b)),

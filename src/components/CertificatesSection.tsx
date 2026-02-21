@@ -3,11 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ExternalLink, Stamp } from "lucide-react";
 import { usePortfolio } from "@/context/PortfolioContext";
 import { useAnalytics } from "@/context/AnalyticsContext";
+import ImageViewer from "./ImageViewer";
 
 export default function CertificatesSection() {
   const portfolio = usePortfolio();
   const { trackAction } = useAnalytics();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const viewTimerRef = useRef<NodeJS.Timeout | null>(null);
   const trackedRef = useRef(false);
@@ -113,10 +115,15 @@ export default function CertificatesSection() {
                     title={activeCert.title}
                   />
                 ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={activeCert.url}
                     alt={activeCert.title}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-contain cursor-pointer hover:scale-[1.02] transition-transform"
+                    onClick={() => {
+                      setSelectedImage(activeCert.url);
+                      trackAction("click", "certificate-zoom", { title: activeCert.title });
+                    }}
                   />
                 )}
               </div>
@@ -186,6 +193,14 @@ export default function CertificatesSection() {
           )}
         </div>
       </div>
+
+      {selectedImage && (
+        <ImageViewer
+          src={selectedImage}
+          alt="Certificate Full View"
+          onClose={() => setSelectedImage(null)}
+        />
+      )}
     </section>
   );
 }

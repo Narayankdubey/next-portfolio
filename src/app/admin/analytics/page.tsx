@@ -23,7 +23,6 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { generatePDF } from "@/lib/pdfUtils";
 import MultiSelect from "@/components/MultiSelect";
 
@@ -65,7 +64,6 @@ export default function AnalyticsPage() {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [exportingCsv, setExportingCsv] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
-  const searchParams = useSearchParams();
 
   // Basic Filters
   const [filter, setFilter] = useState("today");

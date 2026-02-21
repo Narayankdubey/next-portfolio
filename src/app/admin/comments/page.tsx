@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { formatNumber } from "@/lib/formatUtils";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Check, X, RefreshCcw, Loader2 } from "lucide-react";
 
@@ -116,7 +117,7 @@ export default function AdminCommentsPage() {
           className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-xl"
         >
           <p className="text-blue-100 text-sm font-medium">Total</p>
-          <h3 className="text-3xl font-bold text-white mt-1">{comments.length}</h3>
+          <h3 className="text-3xl font-bold text-white mt-1">{formatNumber(comments.length)}</h3>
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -125,7 +126,7 @@ export default function AdminCommentsPage() {
           className="bg-gradient-to-br from-orange-500 to-orange-600 p-6 rounded-xl"
         >
           <p className="text-orange-100 text-sm font-medium">Pending</p>
-          <h3 className="text-3xl font-bold text-white mt-1">{pendingCount}</h3>
+          <h3 className="text-3xl font-bold text-white mt-1">{formatNumber(pendingCount)}</h3>
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -134,7 +135,7 @@ export default function AdminCommentsPage() {
           className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-xl"
         >
           <p className="text-green-100 text-sm font-medium">Approved</p>
-          <h3 className="text-3xl font-bold text-white mt-1">{approvedCount}</h3>
+          <h3 className="text-3xl font-bold text-white mt-1">{formatNumber(approvedCount)}</h3>
         </motion.div>
       </div>
 

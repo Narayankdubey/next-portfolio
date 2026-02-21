@@ -13,6 +13,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Link from "next/link";
+import { formatNumber } from "@/lib/formatUtils";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -91,7 +92,7 @@ export default function AdminDashboard() {
                 <card.icon className={`w-6 h-6 text-${card.color}-500`} />
               </div>
             </div>
-            <h3 className="text-3xl font-bold text-white mb-1">{card.value}</h3>
+            <h3 className="text-3xl font-bold text-white mb-1">{formatNumber(card.value)}</h3>
             <p className="text-sm text-gray-400">{card.label}</p>
           </motion.div>
         ))}

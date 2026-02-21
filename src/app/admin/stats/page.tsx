@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { formatNumber } from "@/lib/formatUtils";
 import {
   BarChart,
   Bar,
@@ -129,7 +130,9 @@ export default function StatsPage() {
                   </div>
                   <div>
                     <p className="text-gray-400 text-sm">Total Visits</p>
-                    <h3 className="text-3xl font-bold text-white">{statsData?.totalVisits || 0}</h3>
+                    <h3 className="text-3xl font-bold text-white">
+                      {formatNumber(statsData?.totalVisits || 0)}
+                    </h3>
                   </div>
                 </div>
               </div>
@@ -142,7 +145,7 @@ export default function StatsPage() {
                   <div>
                     <p className="text-gray-400 text-sm">Unique Visitors</p>
                     <h3 className="text-3xl font-bold text-white">
-                      {statsData?.uniqueVisitors || 0}
+                      {formatNumber(statsData?.uniqueVisitors || 0)}
                     </h3>
                   </div>
                 </div>
@@ -464,7 +467,9 @@ export default function StatsPage() {
                         >
                           {blog._id}
                         </td>
-                        <td className="py-4 text-blue-400 font-bold">{blog.visits}</td>
+                        <td className="py-4 text-blue-400 font-bold">
+                          {formatNumber(blog.visits)}
+                        </td>
                         <td className="py-4 text-gray-300">{formatDuration(blog.avgTime)}</td>
                         <td className="py-4 text-gray-300">{formatDuration(blog.totalTime)}</td>
                       </tr>

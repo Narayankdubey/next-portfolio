@@ -12,6 +12,8 @@ import {
   EyeOff,
   Search,
 } from "lucide-react";
+import Image from "next/image";
+import { formatNumber } from "@/lib/formatUtils";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { useRouter } from "next/navigation";
 
@@ -219,7 +221,7 @@ export default function AdminBlogPage() {
           className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-xl"
         >
           <p className="text-blue-100 text-sm font-medium">Total Posts</p>
-          <h3 className="text-3xl font-bold text-white mt-1">{posts.length}</h3>
+          <h3 className="text-3xl font-bold text-white mt-1">{formatNumber(posts.length)}</h3>
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}

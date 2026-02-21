@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { generatePDF } from "@/lib/pdfUtils";
+import { formatNumber } from "@/lib/formatUtils";
 import MultiSelect from "@/components/MultiSelect";
 
 interface Journey {
@@ -346,7 +347,9 @@ export default function AnalyticsPage() {
               <Users className="w-4 h-4 text-blue-400" />
               <span className="text-xs text-gray-400 font-medium whitespace-nowrap">Visitors</span>
             </div>
-            <span className="text-sm font-bold text-white pl-2">{pagination.total}</span>
+            <span className="text-sm font-bold text-white pl-2">
+              {formatNumber(pagination.total)}
+            </span>
           </motion.div>
 
           <motion.div
@@ -359,7 +362,9 @@ export default function AnalyticsPage() {
               <TrendingUp className="w-4 h-4 text-purple-400" />
               <span className="text-xs text-gray-400 font-medium whitespace-nowrap">Sessions</span>
             </div>
-            <span className="text-sm font-bold text-white pl-2">{stats.totalSessions}</span>
+            <span className="text-sm font-bold text-white pl-2">
+              {formatNumber(stats.totalSessions)}
+            </span>
           </motion.div>
 
           <motion.div
@@ -372,7 +377,9 @@ export default function AnalyticsPage() {
               <Eye className="w-4 h-4 text-emerald-400" />
               <span className="text-xs text-gray-400 font-medium whitespace-nowrap">Events</span>
             </div>
-            <span className="text-sm font-bold text-white pl-2">{stats.totalEvents}</span>
+            <span className="text-sm font-bold text-white pl-2">
+              {formatNumber(stats.totalEvents)}
+            </span>
           </motion.div>
 
           <motion.div
@@ -647,8 +654,9 @@ export default function AnalyticsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-gray-200 text-sm">
-                        <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-xs font-medium">
-                          {journey.totalSessions} Sessions
+                        <span className="flex items-center gap-1.5 px-2 py-1 bg-blue-600/20 text-blue-400 rounded w-fit text-xs font-medium">
+                          <Users className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                          {formatNumber(journey.totalSessions)} Sessions
                         </span>
                       </td>
                       <td className="px-6 py-4 text-gray-200 text-sm">

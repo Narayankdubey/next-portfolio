@@ -18,6 +18,7 @@ import {
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { generatePDF } from "@/lib/pdfUtils";
+import { formatNumber } from "@/lib/formatUtils";
 
 interface SectionImpression {
   sectionId: string;
@@ -297,7 +298,7 @@ export default function JourneyDetailPage() {
           <div className="flex items-center gap-4 text-sm text-gray-400 font-mono">
             <span>ID: {latestJourney.visitorId}</span>
             <span>•</span>
-            <span>{journeys.length} Sessions</span>
+            <span>{formatNumber(journeys.length)} Sessions</span>
             <span>•</span>
             <span>First Seen: {formatDate(journeys[journeys.length - 1].startTime)}</span>
           </div>
@@ -341,7 +342,7 @@ export default function JourneyDetailPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-gray-400 text-sm px-2 py-0.5 bg-gray-700 rounded">
-                      {journey.events.length} interactions
+                      {formatNumber(journey.events.length)} interactions
                     </span>
                     <div className="flex gap-1 relative" data-html2canvas-ignore>
                       <button

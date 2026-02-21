@@ -20,6 +20,12 @@ import {
   SiJenkins,
   SiGraphql,
   SiRedis,
+  SiAndroid,
+  SiIos,
+  SiAndroidstudio,
+  SiXcode,
+  SiGoogleplay,
+  SiAppstore,
 } from "react-icons/si";
 
 // Lucide Icons for generic items
@@ -62,6 +68,14 @@ export const skillIcons: SkillIconMapping = {
   Jenkins: SiJenkins,
   GraphQL: SiGraphql,
 
+  // Mobile App Development
+  Android: SiAndroid,
+  iOS: SiIos,
+  "Android Studio": SiAndroidstudio,
+  Xcode: SiXcode,
+  "Play Store": SiGoogleplay,
+  "App Store": SiAppstore,
+
   // Other - Generic icons
   "RESTful APIs": Server,
   "Unit Testing": TestTube,
@@ -97,6 +111,14 @@ export const skillColors: { [key: string]: string } = {
   Jenkins: "from-[#D24939] to-[#B13A2E]", // Jenkins red
   GraphQL: "from-[#E10098] to-[#B8007A]", // GraphQL pink
 
+  // Mobile App Development
+  Android: "from-[#3DDC84] to-[#2DA862]",
+  iOS: "from-[#000000] to-[#333333]",
+  "Android Studio": "from-[#3DDC84] to-[#073042]",
+  Xcode: "from-[#157EFB] to-[#0D5BB5]",
+  "Play Store": "from-[#414141] to-[#1E1E1E]",
+  "App Store": "from-[#0D96F6] to-[#0664A6]",
+
   // Other - Custom colors
   "RESTful APIs": "from-indigo-400 to-purple-500",
   "Unit Testing": "from-emerald-400 to-teal-500",
@@ -127,6 +149,12 @@ export const skillBrandColors: { [key: string]: string } = {
   Docker: "#2496ED",
   Jenkins: "#D24939",
   GraphQL: "#E10098",
+  Android: "#3DDC84",
+  iOS: "#ffffff",
+  "Android Studio": "#3DDC84",
+  Xcode: "#157EFB",
+  "Play Store": "#414141",
+  "App Store": "#0D96F6",
   "RESTful APIs": "#818cf8",
   "Unit Testing": "#34d399",
   Agile: "#60a5fa",

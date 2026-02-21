@@ -44,19 +44,25 @@ function ProjectCard({ project }: { project: IProject }) {
             </div>
 
             <div className="flex gap-4 mt-auto">
-              <motion.a
-                href={project.github}
-                whileHover={{ scale: 1.1 }}
-                onClick={() => trackAction("click", "project-github", { title: project.title })}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 px-4 py-2 theme-card border theme-border rounded-lg hover:border-blue-500 transition-colors theme-text"
-              >
-                <Github className="w-4 h-4" />
-                Code
-              </motion.a>
+              {project.github !== "#" && (
+                <motion.a
+                  href={project.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.1 }}
+                  onClick={() => trackAction("click", "project-github", { title: project.title })}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex items-center gap-2 px-4 py-2 theme-card border theme-border rounded-lg hover:border-blue-500 transition-colors theme-text"
+                >
+                  <Github className="w-4 h-4" />
+                  Code
+                </motion.a>
+              )}
               {project.demo !== "#" && (
                 <motion.a
                   href={project.demo}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => trackAction("click", "project-demo", { title: project.title })}

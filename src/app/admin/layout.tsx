@@ -21,8 +21,24 @@ import {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [user, setUser] = useState<{ username: string; role: string } | null>(null);
+  const [badges, setBadges] = useState({ comments: 0, messages: 0, chat: 0, journeys: 0 });
   const pathname = usePathname();
   const router = useRouter();
+
+  // Fetch badges function
+  const fetchBadges = async () => {
+    try {
+      const res = await fetch("/api/admin/badges");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.badges) {
+          setBadges(data.badges);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching badges:", error);
+    }
+  };
 
   useEffect(() => {
     // 1. Try to load from cache first for instant UI
@@ -51,12 +67,43 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           setUser(data.user);
           // Update cache
           localStorage.setItem("admin_user", JSON.stringify(data.user));
+          // Fetch badges once authenticated
+          fetchBadges();
         }
       })
       .catch(() => {
         // Ignore network errors, keep using cache if available
       });
+
+    // 3. Set up polling for badges (every 60s)
+    const interval = setInterval(fetchBadges, 60000);
+    return () => clearInterval(interval);
   }, []);
+
+  // Mark sections as viewed when visiting their pages
+  useEffect(() => {
+    const markViewed = async (section: string) => {
+      try {
+        await fetch("/api/admin/badges/mark-viewed", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ section }),
+        });
+        // Optimistically clear the local badge
+        setBadges((prev) => ({ ...prev, [section]: 0 }));
+      } catch (error) {
+        console.error(`Error marking ${section} as viewed:`, error);
+      }
+    };
+
+    if (pathname === "/admin/comments") {
+      markViewed("comments");
+    } else if (pathname === "/admin/chat") {
+      markViewed("chat");
+    } else if (pathname === "/admin/stats" || pathname === "/admin/analytics") {
+      markViewed("journeys");
+    }
+  }, [pathname]);
 
   const handleLogout = async () => {
     localStorage.removeItem("admin_user");
@@ -69,10 +116,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/portfolio", label: "Portfolio Data", icon: FileText },
     { href: "/admin/features", label: "Feature Flags", icon: ToggleLeft },
     { href: "/admin/blog", label: "Blog", icon: BookOpen },
-    { href: "/admin/comments", label: "Comments", icon: MessageCircle },
-    { href: "/admin/stats", label: "Visitor Stats", icon: BarChart3 },
-    { href: "/admin/messages", label: "Messages", icon: MessageSquare },
-    { href: "/admin/chat", label: "Chat History", icon: History },
+    { href: "/admin/comments", label: "Comments", icon: MessageCircle, badge: badges.comments },
+    { href: "/admin/stats", label: "Visitor Stats", icon: BarChart3, badge: badges.journeys },
+    { href: "/admin/messages", label: "Messages", icon: MessageSquare, badge: badges.messages },
+    { href: "/admin/chat", label: "Chat History", icon: History, badge: badges.chat },
   ];
 
   // Don't show layout on auth pages or full-screen editor pages
@@ -126,14 +173,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
                   isActive
                     ? "bg-blue-600 text-white"
                     : "text-gray-400 hover:bg-gray-700 hover:text-white"
                 }`}
               >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
+                <div className="flex items-center gap-3">
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium">{item.label}</span>
+                </div>
+                {item.badge !== undefined && item.badge > 0 && (
+                  <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    {item.badge > 99 ? "99+" : item.badge}
+                  </span>
+                )}
               </Link>
             );
           })}

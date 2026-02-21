@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
   Clock,
@@ -20,8 +20,10 @@ import {
   ArrowUpDown,
   Download,
   MapPin,
+  X,
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { generatePDF } from "@/lib/pdfUtils";
 import MultiSelect from "@/components/MultiSelect";
 
@@ -63,11 +65,14 @@ export default function AnalyticsPage() {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [exportingCsv, setExportingCsv] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
-  const [filter, setFilter] = useState("week");
+  const searchParams = useSearchParams();
+
+  // Basic Filters
+  const [filter, setFilter] = useState("today");
   const [search, setSearch] = useState("");
   const [interaction, setInteraction] = useState("");
   const [sortField, setSortField] = useState("updatedAt");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [deviceType, setDeviceType] = useState<string[]>([]);
   const [os, setOs] = useState<string[]>([]);
   const [browser, setBrowser] = useState<string[]>([]);
@@ -90,6 +95,7 @@ export default function AnalyticsPage() {
     totalDuration: 0,
     totalEvents: 0,
   });
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
   useEffect(() => {
     fetchFilters();
@@ -280,8 +286,10 @@ export default function AnalyticsPage() {
         {/* Header */}
         <div className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">User Journey Analytics</h1>
-            <p className="text-gray-400">Track visitor behavior and section impressions</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
+              User Journey Analytics
+            </h1>
+            <p className="text-sm text-gray-400">Track visitor behavior and section impressions</p>
           </div>
           <div className="flex gap-2" data-html2canvas-ignore>
             <div className="relative" data-html2canvas-ignore>
@@ -330,74 +338,68 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gray-800 p-6 rounded-xl border border-gray-700"
+            className="bg-gray-800 px-4 py-3 rounded-lg border border-gray-700 flex items-center justify-between shadow-sm"
           >
-            <div className="flex items-center gap-3">
-              <Users className="w-8 h-8 text-blue-400" />
-              <div>
-                <p className="text-sm text-gray-400">Total Visitors</p>
-                <p className="text-2xl font-bold text-white">{pagination.total}</p>
-              </div>
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-blue-400" />
+              <span className="text-xs text-gray-400 font-medium whitespace-nowrap">Visitors</span>
             </div>
+            <span className="text-sm font-bold text-white pl-2">{pagination.total}</span>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-gray-800 p-6 rounded-xl border border-gray-700"
+            className="bg-gray-800 px-4 py-3 rounded-lg border border-gray-700 flex items-center justify-between shadow-sm"
           >
-            <div className="flex items-center gap-3">
-              <TrendingUp className="w-8 h-8 text-purple-400" />
-              <div>
-                <p className="text-sm text-gray-400">Total Sessions</p>
-                <p className="text-2xl font-bold text-white">{stats.totalSessions}</p>
-              </div>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-purple-400" />
+              <span className="text-xs text-gray-400 font-medium whitespace-nowrap">Sessions</span>
             </div>
+            <span className="text-sm font-bold text-white pl-2">{stats.totalSessions}</span>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-gray-800 p-6 rounded-xl border border-gray-700"
+            className="bg-gray-800 px-4 py-3 rounded-lg border border-gray-700 flex items-center justify-between shadow-sm"
           >
-            <div className="flex items-center gap-3">
-              <Eye className="w-8 h-8 text-emerald-400" />
-              <div>
-                <p className="text-sm text-gray-400">Total Events</p>
-                <p className="text-2xl font-bold text-white">{stats.totalEvents}</p>
-              </div>
+            <div className="flex items-center gap-2">
+              <Eye className="w-4 h-4 text-emerald-400" />
+              <span className="text-xs text-gray-400 font-medium whitespace-nowrap">Events</span>
             </div>
+            <span className="text-sm font-bold text-white pl-2">{stats.totalEvents}</span>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-gray-800 p-6 rounded-xl border border-gray-700"
+            className="bg-gray-800 px-4 py-3 rounded-lg border border-gray-700 flex items-center justify-between shadow-sm"
           >
-            <div className="flex items-center gap-3">
-              <Clock className="w-8 h-8 text-orange-400" />
-              <div>
-                <p className="text-sm text-gray-400">Total Duration</p>
-                <p className="text-2xl font-bold text-white">
-                  {formatDuration(stats.totalDuration)}
-                </p>
-              </div>
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-orange-400" />
+              <span className="text-xs text-gray-400 font-medium whitespace-nowrap">
+                Avg Duration
+              </span>
             </div>
+            <span className="text-sm font-bold text-white pl-2">
+              {formatDuration(stats.totalDuration)}
+            </span>
           </motion.div>
         </div>
 
         {/* Filters Panel */}
-        <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 mb-8 space-y-4">
+        <div className="mb-6 space-y-4">
           <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
             {/* Time Filter */}
-            <div className="flex bg-gray-900/50 p-1 rounded-lg">
+            <div className="flex bg-gray-800 p-1.5 rounded-lg border border-gray-700/50 shadow-sm">
               {["today", "week", "month", "all"].map((f) => (
                 <button
                   key={f}
@@ -407,7 +409,7 @@ export default function AnalyticsPage() {
                   }}
                   className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
                     filter === (f === "all" ? "" : f)
-                      ? "bg-blue-600 text-white shadow-lg"
+                      ? "bg-blue-600 text-white shadow-md"
                       : "text-gray-400 hover:text-white hover:bg-gray-700/50"
                   }`}
                 >
@@ -428,7 +430,7 @@ export default function AnalyticsPage() {
                     setSearch(e.target.value);
                     setPage(1);
                   }}
-                  className="w-full pl-9 pr-4 py-2 bg-gray-900/50 text-gray-200 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm placeholder-gray-500 outline-none"
+                  className="w-full pl-9 pr-4 py-2.5 bg-gray-800 text-gray-200 border border-gray-700/50 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm placeholder-gray-500 outline-none shadow-sm"
                 />
               </div>
               <div className="relative flex-1">
@@ -441,107 +443,36 @@ export default function AnalyticsPage() {
                     setInteraction(e.target.value);
                     setPage(1);
                   }}
-                  className="w-full pl-9 pr-4 py-2 bg-gray-900/50 text-gray-200 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm placeholder-gray-500 outline-none"
+                  className="w-full pl-9 pr-4 py-2.5 bg-gray-800 text-gray-200 border border-gray-700/50 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm placeholder-gray-500 outline-none shadow-sm"
                 />
               </div>
-            </div>
-          </div>
 
-          {/* Advanced Filters */}
-          <div className="pt-4 border-t border-gray-700/50 flex flex-wrap gap-4 items-center">
-            <div className="flex items-center gap-2 text-gray-400 mr-2">
-              <Filter className="w-4 h-4" />
-              <span className="text-sm font-medium">Refine:</span>
-            </div>
-
-            <MultiSelect
-              label="Device"
-              options={availableDevices}
-              selectedValues={deviceType}
-              onChange={(vals) => {
-                setDeviceType(vals);
-                setPage(1);
-              }}
-              className="w-40"
-            />
-            <MultiSelect
-              label="OS"
-              options={availableOs}
-              selectedValues={os}
-              onChange={(vals) => {
-                setOs(vals);
-                setPage(1);
-              }}
-              className="w-40"
-            />
-            <MultiSelect
-              label="Browser"
-              options={availableBrowsers}
-              selectedValues={browser}
-              onChange={(vals) => {
-                setBrowser(vals);
-                setPage(1);
-              }}
-              className="w-40"
-            />
-            <MultiSelect
-              label="Country"
-              options={availableCountries}
-              selectedValues={country}
-              onChange={(vals) => {
-                setCountry(vals);
-                // Reset invalid cities automatically when country shifts constraints
-                setLocation((prev) =>
-                  prev.filter((city) => {
-                    let isValid = false;
-                    if (vals.length === 0) isValid = true;
-                    vals.forEach((c) => {
-                      if (locationMap[c] && locationMap[c].includes(city)) isValid = true;
-                    });
-                    return isValid;
-                  })
-                );
-                setPage(1);
-              }}
-              className="w-48"
-            />
-            <MultiSelect
-              label="City"
-              options={availableCities}
-              selectedValues={location}
-              onChange={(vals) => {
-                setLocation(vals);
-                setPage(1);
-              }}
-              className="w-48"
-            />
-
-            {/* Duration Range (Seconds) */}
-            <div className="flex items-center gap-2 bg-gray-900/50 p-1.5 px-3 rounded-lg border border-gray-700">
-              <span className="text-sm text-gray-400">Duration (sec):</span>
-              <input
-                type="number"
-                min="0"
-                placeholder="Min"
-                value={minDuration}
-                onChange={(e) => {
-                  setMinDuration(e.target.value);
-                  setPage(1);
-                }}
-                className="w-16 bg-transparent text-gray-200 text-sm outline-none px-1 text-center placeholder-gray-600 appearance-none"
-              />
-              <span className="text-gray-600">-</span>
-              <input
-                type="number"
-                min="0"
-                placeholder="Max"
-                value={maxDuration}
-                onChange={(e) => {
-                  setMaxDuration(e.target.value);
-                  setPage(1);
-                }}
-                className="w-16 bg-transparent text-gray-200 text-sm outline-none px-1 text-center placeholder-gray-600 appearance-none"
-              />
+              {/* Filter Drawer Toggle */}
+              <button
+                onClick={() => setIsFilterDrawerOpen(true)}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 rounded-lg transition-colors whitespace-nowrap"
+              >
+                <Filter className="w-4 h-4" />
+                <span>Filters</span>
+                {deviceType.length +
+                  os.length +
+                  browser.length +
+                  country.length +
+                  location.length +
+                  (minDuration ? 1 : 0) +
+                  (maxDuration ? 1 : 0) >
+                  0 && (
+                  <span className="bg-blue-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                    {deviceType.length +
+                      os.length +
+                      browser.length +
+                      country.length +
+                      location.length +
+                      (minDuration ? 1 : 0) +
+                      (maxDuration ? 1 : 0)}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -761,6 +692,168 @@ export default function AnalyticsPage() {
           )}
         </div>
       </div>
+
+      {/* Filter Drawer Overlay */}
+      <AnimatePresence>
+        {isFilterDrawerOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsFilterDrawerOpen(false)}
+              className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 right-0 w-full max-w-sm bg-gray-800 border-l border-gray-700 shadow-2xl z-50 flex flex-col"
+            >
+              <div className="flex items-center justify-between p-4 border-b border-gray-700">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Filter className="w-5 h-5 text-blue-400" />
+                  Advanced Filters
+                </h2>
+                <button
+                  onClick={() => setIsFilterDrawerOpen(false)}
+                  className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-300 mb-4">Device Attributes</h3>
+                  <div className="space-y-4">
+                    <MultiSelect
+                      label="Device"
+                      options={availableDevices}
+                      selectedValues={deviceType}
+                      onChange={(vals) => {
+                        setDeviceType(vals);
+                        setPage(1);
+                      }}
+                      className="w-full"
+                    />
+                    <MultiSelect
+                      label="OS"
+                      options={availableOs}
+                      selectedValues={os}
+                      onChange={(vals) => {
+                        setOs(vals);
+                        setPage(1);
+                      }}
+                      className="w-full"
+                    />
+                    <MultiSelect
+                      label="Browser"
+                      options={availableBrowsers}
+                      selectedValues={browser}
+                      onChange={(vals) => {
+                        setBrowser(vals);
+                        setPage(1);
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-700 pt-6">
+                  <h3 className="text-sm font-medium text-gray-300 mb-4">Location</h3>
+                  <div className="space-y-4">
+                    <MultiSelect
+                      label="Country"
+                      options={availableCountries}
+                      selectedValues={country}
+                      onChange={(vals) => {
+                        setCountry(vals);
+                        setLocation((prev) =>
+                          prev.filter((city) => {
+                            let isValid = false;
+                            if (vals.length === 0) isValid = true;
+                            vals.forEach((c) => {
+                              if (locationMap[c] && locationMap[c].includes(city)) isValid = true;
+                            });
+                            return isValid;
+                          })
+                        );
+                        setPage(1);
+                      }}
+                      className="w-full"
+                    />
+                    <MultiSelect
+                      label="City"
+                      options={availableCities}
+                      selectedValues={location}
+                      onChange={(vals) => {
+                        setLocation(vals);
+                        setPage(1);
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-700 pt-6">
+                  <h3 className="text-sm font-medium text-gray-300 mb-4">Duration Range</h3>
+                  <div className="flex items-center gap-2 bg-gray-900/50 p-2 rounded-lg border border-gray-700">
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="Min (sec)"
+                      value={minDuration}
+                      onChange={(e) => {
+                        setMinDuration(e.target.value);
+                        setPage(1);
+                      }}
+                      className="w-full bg-transparent text-gray-200 text-sm outline-none px-2 text-center placeholder-gray-600"
+                    />
+                    <span className="text-gray-600">-</span>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="Max (sec)"
+                      value={maxDuration}
+                      onChange={(e) => {
+                        setMaxDuration(e.target.value);
+                        setPage(1);
+                      }}
+                      className="w-full bg-transparent text-gray-200 text-sm outline-none px-2 text-center placeholder-gray-600"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 border-t border-gray-700 flex gap-3">
+                <button
+                  onClick={() => {
+                    setDeviceType([]);
+                    setOs([]);
+                    setBrowser([]);
+                    setCountry([]);
+                    setLocation([]);
+                    setMinDuration("");
+                    setMaxDuration("");
+                    setPage(1);
+                  }}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors border border-gray-600/50"
+                >
+                  Clear All
+                </button>
+                <button
+                  onClick={() => setIsFilterDrawerOpen(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-lg shadow-blue-900/20"
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

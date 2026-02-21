@@ -115,19 +115,53 @@ export async function GET() {
       { $limit: 8 },
     ]);
 
-    // Blog Page Stats
+    // Blog Page Stats (extracted from granular session events to ensure accurate time)
     const blogStats = await UserJourney.aggregate([
+      { $unwind: "$events" },
       {
         $match: {
-          landingPage: { $regex: /^\/blog/ },
+          "events.sectionId": "blog-detail",
+          "events.interactionId": { $exists: true, $ne: null },
         },
       },
+      // Split interactionId (e.g., "blog-detail-how-to-code-1709234857") into an array
+      { $addFields: { parts: { $split: ["$events.interactionId", "-"] } } },
+      // The slug starts at index 2 and stops 1 element before the end (the timestamp)
+      {
+        $addFields: {
+          slugParts: { $slice: ["$parts", 2, { $subtract: [{ $size: "$parts" }, 3] }] },
+        },
+      },
+      // Reconstruct the blog path by joining the slug parts securely
+      {
+        $addFields: {
+          blogPath: {
+            $concat: [
+              "/blog/",
+              {
+                $reduce: {
+                  input: "$slugParts",
+                  initialValue: "",
+                  in: {
+                    $cond: [
+                      { $eq: ["$$value", ""] },
+                      "$$this",
+                      { $concat: ["$$value", "-", "$$this"] },
+                    ],
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
+      // Group by the constructed URL path and calculate precise read durations
       {
         $group: {
-          _id: "$landingPage",
+          _id: "$blogPath",
           visits: { $sum: 1 },
-          avgTime: { $avg: "$totalDuration" },
-          totalTime: { $sum: "$totalDuration" },
+          avgTime: { $avg: "$events.duration" },
+          totalTime: { $sum: "$events.duration" },
         },
       },
       { $sort: { totalTime: -1 } },

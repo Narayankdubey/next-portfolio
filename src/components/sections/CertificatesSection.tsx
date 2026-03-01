@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ExternalLink, Stamp } from "lucide-react";
 import { usePortfolio } from "@/context/PortfolioContext";
 import { useAnalytics } from "@/context/AnalyticsContext";
-import ImageViewer from "./ImageViewer";
+import ImageViewer from "@/components/widgets/ImageViewer";
 
 export default function CertificatesSection() {
   const portfolio = usePortfolio();

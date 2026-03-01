@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
-import { BlogDetailSkeleton } from "@/components/SkeletonLoader";
+import Navbar from "@/components/layout/Navbar";
+import { BlogDetailSkeleton } from "@/components/ui/SkeletonLoader";
 import {
   ArrowLeft,
   Calendar,
@@ -44,7 +44,6 @@ interface Comment {
 
 export default function BlogDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const portfolio = usePortfolio();
   const slug = params?.slug as string;
   const { trackAction, trackSection } = useAnalytics();
@@ -76,10 +75,13 @@ export default function BlogDetailPage() {
     // Track view as a section
     trackSection("blog-detail", viewId.current, { interactions: 0 });
 
+    const currentViewId = viewId.current;
+    const currentStartTime = startTimeRef.current;
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
-        const duration = Date.now() - startTimeRef.current;
-        trackSection("blog-detail", viewId.current, { duration });
+        const duration = Date.now() - currentStartTime;
+        trackSection("blog-detail", currentViewId, { duration });
       }
     };
 
@@ -89,8 +91,8 @@ export default function BlogDetailPage() {
     // Track time spent on unmount (fallback)
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      const duration = Date.now() - startTimeRef.current;
-      trackSection("blog-detail", viewId.current, { duration });
+      const duration = Date.now() - currentStartTime;
+      trackSection("blog-detail", currentViewId, { duration });
     };
   }, [slug, trackSection]);
 

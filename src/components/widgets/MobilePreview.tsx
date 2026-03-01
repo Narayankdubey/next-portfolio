@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import DraggableModal from "./DraggableModal";
+import DraggableModal from "@/components/modals/DraggableModal";
 
 interface MobilePreviewProps {
   isOpen: boolean;

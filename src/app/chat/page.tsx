@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef } from "react";
-import ChatInterface, { ChatInterfaceRef } from "@/components/ChatInterface";
-import Navbar from "@/components/Navbar";
+import ChatInterface, { ChatInterfaceRef } from "@/components/features/chat/ChatInterface";
+import Navbar from "@/components/layout/Navbar";
 import { MessageSquare, HelpCircle } from "lucide-react";
 
 export default function ChatPage() {

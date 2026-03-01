@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Sun, Moon } from "lucide-react";
-import BlogCard from "./BlogCard";
+import BlogCard from "@/components/features/blog/BlogCard";
 import styles from "./BlogForm.module.css";
 
 interface BlogFormProps {
@@ -303,6 +303,7 @@ export default function BlogForm({ onClose, existingPost }: BlogFormProps) {
               <h1 className="text-3xl font-bold mb-2 break-words">{title || "Blog Title"}</h1>
               <p className="opacity-70 mb-4 break-words">{description || "Blog Description"}</p>
               {thumbnailUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={thumbnailUrl}
                   alt="Thumbnail"

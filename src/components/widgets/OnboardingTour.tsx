@@ -102,7 +102,7 @@ export default function OnboardingTour({ onOpenChatbot }: OnboardingTourProps) {
       (step) =>
         !step.requiresFlag || flags.features[step.requiresFlag as keyof typeof flags.features]
     );
-  }, [flags.features]);
+  }, [flags]);
 
   // Helper functions defined before use
   const getTarget = useCallback(
@@ -121,7 +121,7 @@ export default function OnboardingTour({ onOpenChatbot }: OnboardingTourProps) {
         }
 
         return target;
-      } catch (e) {
+      } catch {
         console.warn("Invalid selector:", step.target);
         return null;
       }

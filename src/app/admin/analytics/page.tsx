@@ -7,7 +7,6 @@ import {
   Clock,
   Eye,
   TrendingUp,
-  Calendar,
   Search,
   ChevronLeft,
   ChevronRight,
@@ -25,7 +24,7 @@ import {
 import Link from "next/link";
 import { generatePDF } from "@/lib/pdfUtils";
 import { formatNumber } from "@/lib/formatUtils";
-import MultiSelect from "@/components/MultiSelect";
+import MultiSelect from "@/components/ui/MultiSelect";
 
 interface Journey {
   _id: string;
@@ -141,6 +140,7 @@ export default function AnalyticsPage() {
   useEffect(() => {
     // Note: To automatically clear irrelevant cities when country changes,
     // we could do: setLocation(prev => prev.filter(c => availableCities.includes(c)));
+
     fetchJourneys();
   }, [
     filter,

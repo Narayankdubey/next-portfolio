@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useState, useMemo, useRef } from "react";
-import BlogCard from "@/components/BlogCard";
-import EmptyBlogState from "@/components/EmptyBlogState";
-import { BlogCardSkeleton } from "@/components/SkeletonLoader";
-import Navbar from "@/components/Navbar";
+import BlogCard from "@/components/features/blog/BlogCard";
+import EmptyBlogState from "@/components/features/blog/EmptyBlogState";
+import { BlogCardSkeleton } from "@/components/ui/SkeletonLoader";
+import Navbar from "@/components/layout/Navbar";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { useAnalytics } from "@/context/AnalyticsContext";
 import styles from "./BlogPage.module.css";
@@ -40,10 +40,13 @@ export default function BlogPage() {
     // Track initial view
     trackSection("blog-listing", viewId.current);
 
+    const currentViewId = viewId.current;
+    const currentStartTime = startTime.current;
+
     // Track duration on unmount
     return () => {
-      const duration = Date.now() - startTime.current;
-      trackSection("blog-listing", viewId.current, { duration });
+      const duration = Date.now() - currentStartTime;
+      trackSection("blog-listing", currentViewId, { duration });
     };
   }, [trackSection]);
 

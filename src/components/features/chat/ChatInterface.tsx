@@ -36,7 +36,6 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
       },
     ]);
     const [isTyping, setIsTyping] = useState(false);
-    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { playClick, playTyping, playSuccess } = useSound();
     const { trackAction } = useAnalytics();
@@ -57,7 +56,6 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
 
     const loadChatHistory = async (uid: string) => {
       try {
-        setIsLoadingHistory(true);
         const response = await fetch(`/api/chat/history?userId=${uid}`);
 
         if (!response.ok) {
@@ -93,8 +91,6 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
       } catch (error) {
         console.error("Failed to load chat history:", error);
         // Don't show error to user, just continue with empty history
-      } finally {
-        setIsLoadingHistory(false);
       }
     };
 

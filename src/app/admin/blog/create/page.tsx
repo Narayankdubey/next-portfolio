@@ -1,5 +1,5 @@
 "use client";
-import BlogForm from "@/components/BlogForm";
+import BlogForm from "@/components/features/blog/BlogForm";
 import { useRouter } from "next/navigation";
 
 export default function CreateBlogPost() {

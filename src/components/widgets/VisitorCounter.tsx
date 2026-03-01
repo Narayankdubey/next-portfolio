@@ -5,7 +5,6 @@ import { Eye } from "lucide-react";
 
 export default function VisitorCounter() {
   const [totalVisits, setTotalVisits] = useState<number | null>(null);
-  const [uniqueVisitors, setUniqueVisitors] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -15,7 +14,6 @@ export default function VisitorCounter() {
 
         const data = await response.json();
         setTotalVisits(data.totalVisits);
-        setUniqueVisitors(data.uniqueVisitors);
       } catch (error) {
         console.error("Failed to load visitor stats:", error);
       }

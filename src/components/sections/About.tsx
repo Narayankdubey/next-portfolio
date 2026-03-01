@@ -3,9 +3,9 @@
 import { motion } from "framer-motion";
 import { usePortfolio } from "@/context/PortfolioContext";
 import { useFeatureFlags } from "@/context/FeatureFlagsContext";
-import TechMarquee from "./TechMarquee";
-import GithubHeatmap from "./GithubHeatmap";
-import GlitchText from "./GlitchText";
+import TechMarquee from "@/components/effects/TechMarquee";
+import GithubHeatmap from "@/components/widgets/GithubHeatmap";
+import GlitchText from "@/components/effects/GlitchText";
 import { useSectionTracking } from "@/hooks/useAnalytics";
 
 export default function About() {

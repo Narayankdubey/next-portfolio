@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, BookOpen } from "lucide-react";
-import { BlogWidgetSkeleton } from "./SkeletonLoader";
+import { BlogWidgetSkeleton } from "@/components/ui/SkeletonLoader";
 import styles from "./BlogWidget.module.css";
 import { useSectionTracking } from "@/hooks/useAnalytics";
 

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, FileCode, Briefcase, Code2, ArrowRight } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePortfolio } from "@/context/PortfolioContext";
-import DraggableModal from "./DraggableModal";
+import DraggableModal from "@/components/modals/DraggableModal";
 import { useAnalytics } from "@/context/AnalyticsContext";
 
 interface SearchResult {

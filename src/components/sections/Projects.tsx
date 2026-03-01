@@ -1,8 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Github, ExternalLink } from "lucide-react";
-import Image from "next/image";
 import { usePortfolio } from "@/context/PortfolioContext";
-import TiltCard from "./TiltCard";
+import TiltCard from "@/components/ui/TiltCard";
 import { getSkillIcon } from "@/utils/skillIcons";
 import { IProject } from "@/models/Portfolio";
 import { useAnalytics } from "@/context/AnalyticsContext";

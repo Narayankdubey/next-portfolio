@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Code, Database, Wrench, Layers, LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { usePortfolio } from "@/context/PortfolioContext";
-import DraggableModal from "./DraggableModal";
+import DraggableModal from "@/components/modals/DraggableModal";
 import { getSkillIcon, getSkillColor } from "@/utils/skillIcons";
 
 interface TechVisualizerProps {

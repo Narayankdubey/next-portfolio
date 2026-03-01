@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import BlogForm from "@/components/BlogForm";
+import BlogForm from "@/components/features/blog/BlogForm";
 import { useRouter, useParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 

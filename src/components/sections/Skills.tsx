@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePortfolio } from "@/context/PortfolioContext";
-import GlitchText from "./GlitchText";
+import GlitchText from "@/components/effects/GlitchText";
 import { getSkillIcon, getSkillColor, getSkillBrandColor } from "@/utils/skillIcons";
 import { useSectionTracking, useAnalytics } from "@/hooks/useAnalytics";
 

@@ -24,7 +24,7 @@ import Image from "next/image";
 import { usePortfolio } from "@/context/PortfolioContext";
 import { useFeatureFlags } from "@/context/FeatureFlagsContext";
 import { useAnalytics } from "@/context/AnalyticsContext";
-import GlitchText from "./GlitchText";
+import GlitchText from "@/components/effects/GlitchText";
 
 interface HeroProps {
   terminalOpen: boolean;

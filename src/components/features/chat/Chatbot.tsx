@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import ChatInterface from "./ChatInterface";
+import ChatInterface from "@/components/features/chat/ChatInterface";
 
 interface ChatbotProps {
   isOpen: boolean;

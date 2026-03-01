@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { formatNumber } from "@/lib/formatUtils";
-import ToggleSwitch from "@/components/ToggleSwitch";
+import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import { useRouter } from "next/navigation";
 
 interface BlogPostAdmin {

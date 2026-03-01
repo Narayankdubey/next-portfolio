@@ -1,6 +1,6 @@
 "use client";
 
-import Hero from "./Hero";
+import Hero from "@/components/sections/Hero";
 import { useSectionTracking } from "@/hooks/useAnalytics";
 
 interface LandingProps {

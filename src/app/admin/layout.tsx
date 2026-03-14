@@ -26,18 +26,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [user, setUser] = useState<{ username: string; role: string } | null>(null);
   const [badges, setBadges] = useState({ comments: 0, messages: 0, chat: 0, journeys: 0 });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pollInterval, setPollInterval] = useState(30000); // Start with 30s
   const pathname = usePathname();
   const router = useRouter();
 
   // Fetch badges function
-  const fetchBadges = async () => {
+  const fetchBadges = async (isManual = false) => {
     setIsRefreshing(true);
     try {
       const res = await fetch("/api/admin/badges");
       if (res.ok) {
         const data = await res.json();
         if (data.badges) {
+          const hasNew =
+            data.badges.comments > badges.comments ||
+            data.badges.messages > badges.messages ||
+            data.badges.chat > badges.chat ||
+            data.badges.journeys > badges.journeys;
+
           setBadges(data.badges);
+
+          if (isManual || hasNew) {
+            setPollInterval(30000); // Reset to 30s
+          } else {
+            // Exponential backoff: increase interval by 1.5x, max 10 mins
+            setPollInterval((prev) => Math.min(prev * 1.5, 600000));
+          }
         }
       }
     } catch (error) {
@@ -47,22 +61,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   };
 
+  // 1. Initial Load & Auth
   useEffect(() => {
-    // 1. Try to load from cache first for instant UI
     const cachedUser = localStorage.getItem("admin_user");
     if (cachedUser) {
       try {
-        setUser(JSON.parse(cachedUser));  
+        setUser(JSON.parse(cachedUser));
       } catch (e) {
         localStorage.removeItem("admin_user");
       }
     }
 
-    // 2. Fetch fresh user info to verify session
     fetch("/api/admin/auth/me")
       .then((res) => {
         if (res.status === 401) {
-          // Session expired
           localStorage.removeItem("admin_user");
           router.push("/admin/login");
           throw new Error("Unauthorized");
@@ -72,18 +84,46 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       .then((data) => {
         if (data.user) {
           setUser(data.user);
-          // Update cache
           localStorage.setItem("admin_user", JSON.stringify(data.user));
-          // Fetch badges once authenticated
-          fetchBadges();
+          fetchBadges(true);
         }
       })
-      .catch(() => {
-        // Ignore network errors, keep using cache if available
-      });
+      .catch(() => {});
   }, []);
 
-  // Mark sections as viewed when visiting their pages
+  // 2. Exponential Polling
+  useEffect(() => {
+    if (!user) return;
+
+    const timer = setTimeout(() => {
+      fetchBadges();
+    }, pollInterval);
+
+    return () => clearTimeout(timer);
+  }, [pollInterval, user]);
+
+  // 3. Focus Recovery (Reset timer on focus)
+  useEffect(() => {
+    const handleFocus = () => {
+      setPollInterval(30000);
+      fetchBadges(true);
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [user]);
+
+  // 4. Dynamic Title Update
+  useEffect(() => {
+    const totalCount = Object.values(badges).reduce((acc, count) => acc + count, 0);
+    const originalTitle = "Admin Portal | Narayan Dubey";
+    if (totalCount > 0) {
+      document.title = `(${totalCount}) ${originalTitle}`;
+    } else {
+      document.title = originalTitle;
+    }
+  }, [badges]);
+
+  // 5. Mark sections as viewed when visiting their pages
   useEffect(() => {
     const markViewed = async (section: string) => {
       try {
@@ -92,8 +132,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ section }),
         });
-        // Optimistically clear the local badge
         setBadges((prev) => ({ ...prev, [section]: 0 }));
+        setPollInterval(30000); // Reset interval after action
       } catch (error) {
         console.error(`Error marking ${section} as viewed:`, error);
       }
@@ -170,7 +210,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             )}
           </div>
           <button
-            onClick={fetchBadges}
+            onClick={() => fetchBadges(true)}
             disabled={isRefreshing}
             className={`p-2 bg-gray-700/50 rounded-lg hover:bg-gray-600 transition-all text-gray-400 hover:text-white ${isRefreshing ? "opacity-50 cursor-not-allowed" : ""}`}
             title="Refresh Badges"

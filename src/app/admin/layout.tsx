@@ -16,17 +16,22 @@ import {
   Menu,
   X,
   LogOut,
+  RefreshCw,
+  Globe,
+  Quote,
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [user, setUser] = useState<{ username: string; role: string } | null>(null);
   const [badges, setBadges] = useState({ comments: 0, messages: 0, chat: 0, journeys: 0 });
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
   // Fetch badges function
   const fetchBadges = async () => {
+    setIsRefreshing(true);
     try {
       const res = await fetch("/api/admin/badges");
       if (res.ok) {
@@ -37,6 +42,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }
     } catch (error) {
       console.error("Error fetching badges:", error);
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -45,7 +52,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const cachedUser = localStorage.getItem("admin_user");
     if (cachedUser) {
       try {
-        setUser(JSON.parse(cachedUser)); // eslint-disable-line react-hooks/set-state-in-effect
+        setUser(JSON.parse(cachedUser));  
       } catch (e) {
         localStorage.removeItem("admin_user");
       }
@@ -74,10 +81,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       .catch(() => {
         // Ignore network errors, keep using cache if available
       });
-
-    // 3. Set up polling for badges (every 60s)
-    const interval = setInterval(fetchBadges, 60000);
-    return () => clearInterval(interval);
   }, []);
 
   // Mark sections as viewed when visiting their pages
@@ -120,6 +123,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/stats", label: "Visitor Stats", icon: BarChart3, badge: badges.journeys },
     { href: "/admin/messages", label: "Messages", icon: MessageSquare, badge: badges.messages },
     { href: "/admin/chat", label: "Chat History", icon: History, badge: badges.chat },
+    { href: "/admin/seo", label: "SEO Settings", icon: Globe },
+    { href: "/admin/testimonials", label: "Testimonials", icon: Quote },
   ];
 
   // Don't show layout on auth pages or full-screen editor pages
@@ -153,15 +158,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           !isSidebarOpen && "pointer-events-none lg:pointer-events-auto lg:w-0"
         }`}
       >
-        <div className="p-6 border-b border-gray-700">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-            Admin Portal
-          </h1>
-          {user && (
-            <p className="text-sm text-gray-400 mt-2">
-              Welcome, <span className="text-white font-medium">{user.username}</span>
-            </p>
-          )}
+        <div className="p-6 border-b border-gray-700 flex justify-between items-start">
+          <div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+              Admin Portal
+            </h1>
+            {user && (
+              <p className="text-sm text-gray-400 mt-2">
+                Welcome, <span className="text-white font-medium">{user.username}</span>
+              </p>
+            )}
+          </div>
+          <button
+            onClick={fetchBadges}
+            disabled={isRefreshing}
+            className={`p-2 bg-gray-700/50 rounded-lg hover:bg-gray-600 transition-all text-gray-400 hover:text-white ${isRefreshing ? "opacity-50 cursor-not-allowed" : ""}`}
+            title="Refresh Badges"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
+          </button>
         </div>
 
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">

@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     await dbConnect();
 
     const body = await request.json();
-    const { sessionId, type, target, metadata } = body;
+    const { sessionId, type, target, metadata, x, y } = body;
 
     if (!sessionId || !type || !target) {
       return NextResponse.json(
@@ -29,6 +29,8 @@ export async function POST(request: NextRequest) {
       target,
       timestamp: new Date(),
       metadata,
+      ...(x !== undefined && { x }),
+      ...(y !== undefined && { y }),
     });
 
     // Update last activity time

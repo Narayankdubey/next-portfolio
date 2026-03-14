@@ -27,6 +27,7 @@ import {
   RefreshCcw,
   Activity,
   MapPin,
+  Flame,
 } from "lucide-react";
 
 const formatDuration = (ms: number) => {
@@ -96,6 +97,13 @@ export default function StatsPage() {
             >
               <Activity className="w-4 h-4" />
               View User Journeys
+            </Link>
+            <Link
+              href="/admin/heatmap"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 rounded-lg border border-orange-500/30 transition-colors"
+            >
+              <Flame className="w-4 h-4" />
+              Heatmaps
             </Link>
             <button
               onClick={handleRefreshStats}

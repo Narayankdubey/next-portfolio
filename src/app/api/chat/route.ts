@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Portfolio from "@/models/Portfolio";
 import ChatMessage from "@/models/ChatMessage";
+import AISettings from "@/models/AISettings";
 import { generateAIResponse } from "@/lib/ai";
 
 export async function POST(request: NextRequest) {
@@ -25,6 +26,11 @@ export async function POST(request: NextRequest) {
     // Connect to database and fetch portfolio data
     await dbConnect();
     const portfolio = await Portfolio.findOne();
+    const settings = (await (AISettings as any).findOne()) || {
+      systemPrompt: "",
+      customKnowledge: "",
+      isActive: true,
+    };
 
     if (!portfolio) {
       return NextResponse.json(
@@ -33,14 +39,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate response - try AI first, fallback to keyword matching
     let response: string;
-    try {
-      response = await generateAIResponse(message, portfolio);
-    } catch (aiError) {
-      console.log("AI generation failed, using fallback:", aiError);
-      // Fallback to keyword matching
+
+    if (!settings.isActive) {
+      // AI is disabled, use fallback immediately
       response = generateFallbackResponse(message, portfolio);
+    } else {
+      // Generate response - try AI first, fallback to keyword matching
+      try {
+        response = await generateAIResponse(
+          message,
+          portfolio,
+          settings.systemPrompt,
+          settings.customKnowledge
+        );
+      } catch (aiError) {
+        console.log("AI generation failed, using fallback:", aiError);
+        // Fallback to keyword matching
+        response = generateFallbackResponse(message, portfolio);
+      }
     }
 
     const timestamp = new Date();

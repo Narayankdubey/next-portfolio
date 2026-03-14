@@ -5,7 +5,12 @@ const API_KEY = process.env.GEMINI_API_KEY || "";
 // Initialize Gemini AI
 const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
 
-export async function generateAIResponse(message: string, portfolioData: any): Promise<string> {
+export async function generateAIResponse(
+  message: string,
+  portfolioData: any,
+  customInstructions: string = "",
+  customKnowledge: string = ""
+): Promise<string> {
   if (!genAI || !API_KEY) {
     throw new Error("Gemini API key not configured");
   }
@@ -15,16 +20,22 @@ export async function generateAIResponse(message: string, portfolioData: any): P
     const context = buildPortfolioContext(portfolioData);
 
     // System prompt
-    const systemPrompt = `You are an AI assistant for ${portfolioData.personal.name}'s portfolio website.
+    let systemPrompt = `You are an AI assistant for ${portfolioData.personal.name}'s portfolio website.
 Your role is to answer questions ONLY about ${portfolioData.personal.name} based on the provided portfolio data.
 Be helpful, concise, and professional. Keep responses under 100 words.
 If asked about something not in the portfolio data, politely say you don't have that information.`;
+
+    if (customInstructions) {
+      systemPrompt = `${customInstructions}\n\n---\n\n${systemPrompt}`;
+    }
 
     // Combine prompt
     const fullPrompt = `${systemPrompt}
 
 Portfolio Data:
 ${context}
+
+${customKnowledge ? `\n\nAdditional Admin Knowledge:\n${customKnowledge}` : ""}
 
 User Question: ${message}
 

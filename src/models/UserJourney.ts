@@ -28,6 +28,8 @@ export interface IAction {
   target: string;
   timestamp: Date;
   metadata?: Record<string, any>;
+  x?: number; // click x as % of page width (0-100)
+  y?: number; // click y as % of page height (0-100)
 }
 
 export interface IUserJourney extends Document {
@@ -104,6 +106,8 @@ const ActionSchema = new Schema<IAction>(
     target: { type: String, required: true }, // e.g., 'navbar-home'
     timestamp: { type: Date, default: Date.now },
     metadata: { type: Map, of: Schema.Types.Mixed },
+    x: { type: Number, min: 0, max: 100 },
+    y: { type: Number, min: 0, max: 100 },
   },
   { _id: false }
 );

@@ -11,14 +11,14 @@ import type { Metadata } from "next";
 import dbConnect from "@/lib/mongodb";
 import Portfolio from "@/models/Portfolio";
 import FeatureFlags from "@/models/FeatureFlags";
+import { getSEOSettings, buildMetadata } from "@/lib/seo";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Narayan Dubey | Full Stack Developer",
-  description:
-    "Portfolio of Narayan Dubey, a Full Stack Developer specializing in React, Node.js, and Cloud Technologies.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSEOSettings();
+  return buildMetadata(seo);
+}
 
 async function getPortfolioData() {
   try {

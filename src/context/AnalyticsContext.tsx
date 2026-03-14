@@ -92,7 +92,6 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
     initSession();
   }, []);
 
-  // Track section impression
   const trackSection = useCallback(
     async (
       sectionId: string,
@@ -128,6 +127,8 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
       if (!session?.sessionId) return;
 
       try {
+        // Extract x/y coordinates if passed in metadata so the API can index them
+        const { x, y, ...restMeta } = metadata ?? {};
         await fetch("/api/analytics/action", {
           method: "POST",
           keepalive: true,
@@ -136,7 +137,9 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
             sessionId: session.sessionId,
             type,
             target,
-            metadata,
+            metadata: Object.keys(restMeta).length ? restMeta : undefined,
+            ...(x !== undefined && { x }),
+            ...(y !== undefined && { y }),
           }),
         });
       } catch (error) {
@@ -145,6 +148,32 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
     },
     [session]
   );
+
+  // Global click coordinate tracker — must be after trackAction is declared
+  useEffect(() => {
+    if (!isInitialized) return;
+    // Don't capture clicks on admin pages
+    if (window.location.pathname.startsWith("/admin")) return;
+
+    let lastClickTime = 0;
+    const THROTTLE_MS = 400;
+
+    const handleClick = (e: MouseEvent) => {
+      const now = Date.now();
+      if (now - lastClickTime < THROTTLE_MS) return;
+      lastClickTime = now;
+
+      const xPct = parseFloat(((e.clientX / window.innerWidth) * 100).toFixed(1));
+      const yPct = parseFloat(
+        (((e.clientY + window.scrollY) / document.documentElement.scrollHeight) * 100).toFixed(1)
+      );
+
+      trackAction("page-click", "page-click", { x: xPct, y: yPct, page: window.location.pathname });
+    };
+
+    document.addEventListener("click", handleClick, { passive: true });
+    return () => document.removeEventListener("click", handleClick);
+  }, [isInitialized, trackAction]);
 
   return (
     <AnalyticsContext.Provider value={{ session, isInitialized, trackSection, trackAction }}>

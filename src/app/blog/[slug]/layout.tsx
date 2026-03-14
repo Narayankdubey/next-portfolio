@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getSEOSettings, buildMetadata } from "@/lib/seo";
+import { getSEOSettings, buildMetadata, getProfileImage } from "@/lib/seo";
 import dbConnect from "@/lib/mongodb";
 import BlogPost from "@/models/BlogPost";
 
@@ -22,12 +22,17 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const [seo, post] = await Promise.all([getSEOSettings(), getBlogPost(params.slug)]);
+  const [seo, post, profileImage] = await Promise.all([
+    getSEOSettings(),
+    getBlogPost(params.slug),
+    getProfileImage(),
+  ]);
 
   if (!post) {
     return buildMetadata(seo, {
       title: `Blog | ${seo.title}`,
       description: seo.description,
+      favicon: profileImage,
     });
   }
 
@@ -37,6 +42,7 @@ export async function generateMetadata({
     ogTitle: post.title ?? seo.ogTitle,
     ogDescription: post.description ?? seo.ogDescription,
     ogImage: post.thumbnailUrl ?? seo.ogImage,
+    favicon: profileImage,
   });
 }
 

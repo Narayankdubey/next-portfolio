@@ -1,5 +1,6 @@
 import dbConnect from "@/lib/mongodb";
 import SEOSettings from "@/models/SEOSettings";
+import Portfolio from "@/models/Portfolio";
 import type { Metadata } from "next";
 
 // Default SEO fallback values
@@ -31,6 +32,19 @@ export async function getSEOSettings() {
 }
 
 /**
+ * Fetches the user's profile image from the Portfolio model.
+ */
+export async function getProfileImage() {
+  try {
+    await dbConnect();
+    const portfolio = await Portfolio.findOne().lean();
+    return portfolio?.personal?.profileImage || "/favicon.ico";
+  } catch {
+    return "/favicon.ico";
+  }
+}
+
+/**
  * Builds a Next.js-compatible Metadata object from SEO settings.
  * Optionally override per-page values.
  */
@@ -43,6 +57,7 @@ export function buildMetadata(
     ogDescription: string;
     ogImage: string;
     url: string;
+    favicon: string;
   }>
 ): Metadata {
   const title = overrides?.title ?? seo.title;
@@ -50,11 +65,16 @@ export function buildMetadata(
   const ogTitle = overrides?.ogTitle ?? seo.ogTitle ?? title;
   const ogDescription = overrides?.ogDescription ?? seo.ogDescription ?? description;
   const ogImage = overrides?.ogImage ?? seo.ogImage;
+  const favicon = overrides?.favicon ?? "/favicon.ico";
 
   return {
     title,
     description,
     keywords: seo.keywords,
+    icons: {
+      icon: favicon,
+      apple: favicon,
+    },
     openGraph: {
       title: ogTitle,
       description: ogDescription,

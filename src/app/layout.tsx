@@ -11,13 +11,15 @@ import type { Metadata } from "next";
 import dbConnect from "@/lib/mongodb";
 import Portfolio from "@/models/Portfolio";
 import FeatureFlags from "@/models/FeatureFlags";
-import { getSEOSettings, buildMetadata } from "@/lib/seo";
+import { getSEOSettings, buildMetadata, getProfileImage } from "@/lib/seo";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const seo = await getSEOSettings();
-  return buildMetadata(seo);
+  const [seo, profileImage] = await Promise.all([getSEOSettings(), getProfileImage()]);
+  return buildMetadata(seo, {
+    favicon: profileImage,
+  });
 }
 
 async function getPortfolioData() {
